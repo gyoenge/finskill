@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+/**
+ * FinSkill Design System (README §29)
+ * Simple / Friendly / Trustworthy / Modular / Financial + AI
+ */
+@theme {
+  /* Primary — FinSkill Green / Teal */
+  --color-brand-50: #eafaf5;
+  --color-brand-100: #cdf3e7;
+  --color-brand-200: #9fe8d4;
+  --color-brand-300: #63d7bb;
+  --color-brand-400: #2ec2a0;
+  --color-brand-500: #10a888;
+  --color-brand-600: #06886e;
+  --color-brand-700: #086c59;
+  --color-brand-800: #0a5648;
+  --color-brand-900: #09473d;
+
+  /* Secondary — FinSkill Blue */
+  --color-accent-50: #eef4ff;
+  --color-accent-100: #dbe6ff;
+  --color-accent-200: #bed2ff;
+  --color-accent-400: #6b95ff;
+  --color-accent-500: #3b6df5;
+  --color-accent-600: #2450d8;
+  --color-accent-700: #1d3fac;
+
+  /* Text — Deep navy */
+  --color-ink-900: #0d1b2e;
+  --color-ink-700: #26374f;
+  --color-ink-500: #566476;
+  --color-ink-400: #7c8798;
+  --color-ink-300: #a8b1bf;
+
+  /* Surface */
+  --color-surface: #ffffff;
+  --color-canvas: #f5f8fa;
+  --color-line: #e4eaf0;
+
+  /* Risk — 별도 상태색 (§29 Color) */
+  --color-risk-low: #0e8f6f;
+  --color-risk-low-bg: #e6f7f1;
+  --color-risk-medium: #b45309;
+  --color-risk-medium-bg: #fdf3e3;
+  --color-risk-high: #c2263c;
+  --color-risk-high-bg: #fdeaee;
+
+  --font-sans: "Pretendard", "Apple SD Gothic Neo", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+}
+
+html,
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink-900);
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line) transparent;
+}
+
+/* 퍼즐 메타포 (§29 Core UI Metaphor)
+   Skill = Puzzle Piece / 장착 = Snap */
+.puzzle-piece {
+  position: relative;
+  clip-path: polygon(
+    0% 0%, 38% 0%, 38% 6%, 62% 6%, 62% 0%, 100% 0%,
+    100% 100%, 62% 100%, 62% 94%, 38% 94%, 38% 100%, 0% 100%
+  );
+}
+
+.snap-in {
+  animation: snapIn 0.32s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+
+@keyframes snapIn {
+  0% { transform: scale(0.9) translateY(6px); opacity: 0; }
+  60% { transform: scale(1.03) translateY(0); opacity: 1; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.fade-up {
+  animation: fadeUp 0.3s ease-out both;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.pulse-dot {
+  animation: pulseDot 1.1s ease-in-out infinite;
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 0.35; transform: scale(0.85); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+.dna-bar {
+  transition: width 0.7s cubic-bezier(0.2, 0.8, 0.3, 1);
+}

@@ -1,0 +1,245 @@
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import type { Agent, ChatMessage, Skill } from "@/lib/types";
+import { Card } from "@/components/ui";
+import { SkillTrace } from "@/components/Trace";
+import { SkillGapPanel } from "@/components/SkillGapPanel";
+import { post } from "@/components/actions";
+
+/** 화면 07. Agent Chat (README §12, §13, §19, §27) */
+export function ChatClient({
+  agent,
+  equipped,
+  initialMessages,
+  llmEnabled,
+}: {
+  agent: Agent;
+  equipped: Skill[];
+  initialMessages: ChatMessage[];
+  llmEnabled: boolean;
+}) {
+  const router = useRouter();
+  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
+  const [input, setInput] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const endRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages, busy]);
+
+  const send = async (text: string) => {
+    const query = text.trim();
+    if (!query || busy) return;
+    setInput("");
+    setError("");
+    setBusy(true);
+    setMessages((prev) => [
+      ...prev,
+      { id: `local_${Date.now()}`, role: "user", content: query, createdAt: new Date().toISOString() },
+    ]);
+    try {
+      const res = await post("/api/chat", { agentId: agent.id, message: query });
+      setMessages((prev) => [...prev.slice(0, -1), res.userMessage, res.agentMessage]);
+      router.refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "응답에 실패했습니다.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const suggestions = equipped.slice(0, 3).flatMap((s) => s.examples.slice(0, 1));
+
+  return (
+    <div className="grid gap-5 lg:grid-cols-[1.7fr_1fr]">
+      <Card className="flex h-[calc(100vh-13rem)] min-h-[32rem] flex-col overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center gap-3 border-b border-line px-4 py-3">
+          <div className="puzzle-piece flex h-9 w-9 shrink-0 items-center justify-center bg-brand-500 text-[17px]">
+            🤖
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[13.5px] font-bold text-ink-900">{agent.name}</p>
+            <p className="truncate text-[11px] text-ink-400">
+              {equipped.length}개 Skill 장착 · {llmEnabled ? agent.model : "Fallback Router"}
+            </p>
+          </div>
+          <Link href="/my-skills" className="shrink-0 text-[11.5px] font-semibold text-ink-400 hover:text-brand-700">
+            ⚙︎ 설정
+          </Link>
+        </div>
+
+        {/* Conversation */}
+        <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
+          {messages.length === 0 && (
+            <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
+              <div className="puzzle-piece flex h-14 w-14 items-center justify-center bg-brand-50 text-[26px]">💬</div>
+              <p className="text-[14px] font-semibold text-ink-900">무엇을 도와드릴까요?</p>
+              <p className="max-w-sm text-[12.5px] leading-relaxed text-ink-500">
+                장착된 Skill 을 조합해 답변합니다. 필요한 Skill 이 없으면 무엇이 부족한지 알려드립니다.
+              </p>
+              <ul className="mt-1 flex flex-wrap justify-center gap-1.5">
+                {suggestions.map((s) => (
+                  <li key={s}>
+                    <button
+                      onClick={() => send(s)}
+                      className="rounded-xl border border-line bg-surface px-3 py-1.5 text-[12px] text-ink-500 transition hover:border-brand-300 hover:text-brand-700"
+                    >
+                      {s}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {messages.map((m) => (
+            <div key={m.id} className={m.role === "user" ? "flex justify-end" : ""}>
+              {m.role === "user" ? (
+                <p className="max-w-[80%] rounded-2xl rounded-br-md bg-brand-600 px-3.5 py-2.5 text-[13px] leading-relaxed text-white">
+                  {m.content}
+                </p>
+              ) : (
+                <div className="fade-up max-w-[92%]">
+                  <div className="rounded-2xl rounded-bl-md bg-canvas px-3.5 py-3">
+                    <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-ink-900">{m.content}</p>
+                  </div>
+                  {m.trace && m.trace.length > 0 && <SkillTrace trace={m.trace} sources={m.sources} />}
+                  {m.gap && m.gap.missing.length > 0 && (
+                    <SkillGapPanel
+                      gap={m.gap}
+                      agentId={agent.id}
+                      lastQuery={lastUserQuery(messages, m.id)}
+                      onContinue={(q) => send(q)}
+                    />
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+
+          {busy && (
+            <div className="fade-up flex items-center gap-2 rounded-2xl bg-canvas px-3.5 py-3">
+              <span className="flex gap-1">
+                {[0, 1, 2].map((i) => (
+                  <span
+                    key={i}
+                    className="pulse-dot h-1.5 w-1.5 rounded-full bg-brand-500"
+                    style={{ animationDelay: `${i * 0.15}s` }}
+                  />
+                ))}
+              </span>
+              <span className="text-[12px] text-ink-500">Skill 을 선택하고 실행하는 중…</span>
+              <span className="ml-auto flex gap-0.5">
+                {equipped.slice(0, 6).map((s) => (
+                  <span key={s.id} className="text-[13px] opacity-60">
+                    {s.icon}
+                  </span>
+                ))}
+              </span>
+            </div>
+          )}
+
+          {error && <p className="text-[12px] text-risk-high">{error}</p>}
+          <div ref={endRef} />
+        </div>
+
+        {/* Composer */}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            send(input);
+          }}
+          className="flex items-end gap-2 border-t border-line px-3 py-3"
+        >
+          <textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                send(input);
+              }
+            }}
+            rows={1}
+            placeholder="예: 서울에서 자취하는 대학생인데 이번 학기 돈을 좀 아끼고 싶어."
+            className="max-h-32 flex-1 resize-none rounded-xl border border-line bg-surface px-3 py-2.5 text-[13px] leading-relaxed outline-none focus:border-brand-400"
+          />
+          <button
+            type="submit"
+            disabled={busy || !input.trim()}
+            className="rounded-xl bg-brand-600 px-4 py-2.5 text-[13px] font-semibold text-white transition hover:bg-brand-700 disabled:opacity-40"
+          >
+            보내기
+          </button>
+        </form>
+      </Card>
+
+      {/* 현재 장착 Skill */}
+      <div className="space-y-4">
+        <Card className="p-4">
+          <div className="mb-2.5 flex items-center justify-between">
+            <p className="text-[13px] font-bold text-ink-900">현재 장착 Skill</p>
+            <Link href="/shop" className="text-[11.5px] font-semibold text-brand-700 hover:underline">
+              더 찾기
+            </Link>
+          </div>
+          {equipped.length === 0 ? (
+            <p className="rounded-xl bg-canvas px-3 py-3 text-[12px] leading-relaxed text-ink-500">
+              장착된 Skill 이 없습니다. Agent 는 답변할 근거를 가질 수 없습니다.
+            </p>
+          ) : (
+            <ul className="space-y-1.5">
+              {equipped.map((s) => (
+                <li key={s.id} className="flex items-center gap-2.5 rounded-xl border border-line px-2.5 py-2">
+                  <span className="puzzle-piece flex h-8 w-8 shrink-0 items-center justify-center bg-brand-50 text-[15px]">
+                    {s.icon}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <Link
+                      href={`/shop/${s.id}`}
+                      className="block truncate text-[12.5px] font-semibold text-ink-900 hover:text-brand-700"
+                    >
+                      {s.name}
+                    </Link>
+                    <p className="truncate text-[11px] text-ink-400">
+                      {s.executor.type === "http" ? "API" : s.executor.type === "rag" ? "RAG" : "Calculator"} ·{" "}
+                      {s.dataSources[0]}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+
+        <Card className="p-4">
+          <p className="text-[13px] font-bold text-ink-900">이 Agent 가 할 수 없는 일</p>
+          <ul className="mt-2 space-y-1 text-[11.5px] text-ink-500">
+            <li>· 실제 신청 · 계약 · 결제</li>
+            <li>· 송금, 투자 주문, 대출 실행</li>
+            <li>· 개인 계좌 · 카드 자동 연동</li>
+            <li>· 개인 맞춤 투자자문</li>
+          </ul>
+          <p className="mt-2.5 rounded-xl bg-canvas px-3 py-2 text-[11px] leading-relaxed text-ink-400">
+            FinSkill 은 정보 탐색·이해·계획을 돕고, 실행은 사용자가 공식 창구에서 직접 합니다. (§23)
+          </p>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+/** Skill Gap 승인 후 이어서 실행할 원래 질문을 찾는다 (Flow C) */
+function lastUserQuery(messages: ChatMessage[], agentMessageId: string): string {
+  const idx = messages.findIndex((m) => m.id === agentMessageId);
+  for (let i = idx - 1; i >= 0; i--) {
+    if (messages[i].role === "user") return messages[i].content;
+  }
+  return "";
+}
