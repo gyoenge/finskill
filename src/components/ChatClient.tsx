@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import type { Agent, ChatMessage, Skill } from "@/lib/types";
+import { useSearchParams } from "next/navigation";
+import type { Agent, ChatMessage, EvidenceCheck, Skill } from "@/lib/types";
 import { Card, IconTile } from "@/components/ui";
 import { SkillTrace } from "@/components/Trace";
 import { SkillGapPanel } from "@/components/SkillGapPanel";
 import { useStore } from "@/components/StoreProvider";
 import * as ops from "@/lib/state-ops";
 import { SKILLS } from "@/lib/data/skills";
+import { RECIPES } from "@/lib/data/personas";
 
 /** 화면 07. Agent Chat (README §12, §13, §19, §27) */
 export function ChatClient({
@@ -24,11 +26,14 @@ export function ChatClient({
   initialMessages: ChatMessage[];
 }) {
   const { update, getState } = useStore();
+  const searchParams = useSearchParams();
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   /** 지금 토큰을 받고 있는 말풍선 — 커서를 여기에만 그린다 */
   const [streamingId, setStreamingId] = useState<string | null>(null);
+  /** Recipe 실행 중 몇 번째 단계인지 */
+  const [stepInfo, setStepInfo] = useState<{ index: number; total: number } | null>(null);
   const [error, setError] = useState("");
   const endRef = useRef<HTMLDivElement>(null);
 
@@ -40,7 +45,7 @@ export function ChatClient({
    * /api/chat 은 SSE 로 user → trace → gap? → delta* → done 순서로 이벤트를 보낸다.
    * Trace 가 먼저 도착하므로 답변 토큰을 기다리는 동안에도 화면이 채워진다.
    */
-  const send = async (text: string) => {
+  const send = async (text: string, recipeId?: string) => {
     const query = text.trim();
     if (!query || busy) return;
 
@@ -81,6 +86,9 @@ export function ChatClient({
           customSkills: cur.customSkills,
           history: messages.slice(-6),
           message: query,
+          recipeId,
+          // 온보딩에서 받아둔 금융 프로필 — 소비 분석·목표저축이 매번 되묻지 않도록 (§3 고도화)
+          extraParams: cur.profile?.finance ?? {},
         }),
       });
       if (!res.ok || !res.body) {
@@ -106,6 +114,7 @@ export function ChatClient({
           const ev = JSON.parse(line.slice(6));
 
           if (ev.type === "trace") patchDraft((m) => ({ ...m, trace: ev.trace }));
+          else if (ev.type === "step") setStepInfo({ index: ev.index, total: ev.total });
           else if (ev.type === "gap") patchDraft((m) => ({ ...m, gap: ev.gap }));
           else if (ev.type === "delta") patchDraft((m) => ({ ...m, content: m.content + ev.text }));
           else if (ev.type === "reset") patchDraft((m) => ({ ...m, content: "" }));
@@ -134,8 +143,21 @@ export function ChatClient({
     } finally {
       setBusy(false);
       setStreamingId(null);
+      setStepInfo(null);
     }
   };
+
+  // ?recipe=<id> 로 진입하면 해당 Recipe 를 자동 실행한다 (FinKit 화면의 "실행하기")
+  const ranRecipe = useRef(false);
+  useEffect(() => {
+    const rid = searchParams.get("recipe");
+    if (!rid || ranRecipe.current) return;
+    const recipe = RECIPES.find((r) => r.id === rid);
+    if (!recipe) return;
+    ranRecipe.current = true;
+    send(`${recipe.name} 실행해줘`, recipe.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   const suggestions = equipped.slice(0, 3).flatMap((s) => s.examples.slice(0, 1));
 
@@ -199,9 +221,21 @@ export function ChatClient({
                   ) : (
                     <Thinking
                       equipped={equipped}
-                      label={m.trace?.length ? "결과를 정리하는 중…" : "Skill 을 선택하고 실행하는 중…"}
+                      label={
+                        stepInfo
+                          ? `Recipe 실행 중… ${stepInfo.index}/${stepInfo.total}단계`
+                          : m.trace?.length
+                            ? "결과를 정리하는 중…"
+                            : "Skill 을 선택하고 실행하는 중…"
+                      }
                     />
                   )}
+                  {m.recipeName && (
+                    <p className="mb-1.5 inline-flex items-center gap-1 rounded-lg bg-accent-50 px-2 py-0.5 text-[11px] font-bold text-accent-700">
+                      🧪 {m.recipeName}
+                    </p>
+                  )}
+                  {m.evidence && <EvidenceBadge evidence={m.evidence} />}
                   {m.trace && m.trace.length > 0 && <SkillTrace trace={m.trace} sources={m.sources} />}
                   {m.gap && m.gap.missing.length > 0 && (
                     <SkillGapPanel
@@ -378,6 +412,41 @@ function bold(line: string) {
     ) : (
       <span key={i}>{part}</span>
     ),
+  );
+}
+
+/**
+ * 근거 검증 배지 (§19 확장).
+ * 답변의 수치가 Skill 결과와 일치하는지 결정론적으로 대조한 결과를 보여준다.
+ */
+function EvidenceBadge({ evidence }: { evidence: EvidenceCheck }) {
+  const { verified, unverified, strayEntities } = evidence;
+  const total = verified.length + unverified.length;
+  if (total === 0 && strayEntities.length === 0) return null;
+
+  const clean = unverified.length === 0 && strayEntities.length === 0;
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-1.5">
+      <span
+        className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-bold ${
+          clean ? "bg-risk-low-bg text-risk-low" : "bg-risk-medium-bg text-risk-medium"
+        }`}
+        title="답변에 등장한 수치를 Skill 실행 결과와 대조한 결과입니다."
+      >
+        {clean ? "✓" : "!"} 근거 대조 {verified.length}/{total}
+      </span>
+      {unverified.length > 0 && (
+        <span className="text-[11px] text-risk-medium">
+          미확인 {unverified.slice(0, 3).join(", ")}
+          {unverified.length > 3 && ` 외 ${unverified.length - 3}`}
+        </span>
+      )}
+      {strayEntities.length > 0 && (
+        <span className="rounded-lg bg-risk-high-bg px-2 py-1 text-[11px] font-bold text-risk-high">
+          실행 결과에 없는 항목 {strayEntities.length}건
+        </span>
+      )}
+    </div>
   );
 }
 

@@ -2,6 +2,8 @@ import type { Agent, ChatMessage, Skill, SkillGap, TraceStep } from "@/lib/types
 import { runSkill } from "@/lib/agent/executor";
 import { routeSkills } from "@/lib/agent/router";
 import { complete, completeStream, llmAvailable } from "@/lib/llm";
+import { checkEvidence, factsOf } from "@/lib/agent/evidence";
+import type { Recipe } from "@/lib/types";
 
 /**
  * Agent Runtime (README §33)
@@ -157,15 +159,128 @@ export async function runAgent(params: {
     hooks.onDelta(fallbackAnswer(agent, query, traces, gap));
   }
 
+  const finalContent = content ?? fallbackAnswer(agent, query, traces, gap);
+
   const message: ChatMessage = {
     id: `msg_${Date.now().toString(36)}_a`,
     role: "agent",
-    content: content ?? fallbackAnswer(agent, query, traces, gap),
+    content: finalContent,
     trace: traces.map(({ facts: _facts, ...t }) => t),
     gap,
+    // LLM 이 만든 문장만 검증한다. Fallback 답변은 Skill 결과를 그대로 옮긴 것이라 대조가 무의미하다.
+    evidence: content ? checkEvidence(finalContent, factsOf(traces)) : undefined,
     sources: Array.from(new Set(traces.flatMap((t) => t.sources))),
     createdAt: new Date().toISOString(),
   };
 
   return { message, usedSkillIds: decision.selected };
+}
+
+const RECIPE_SYSTEM = (agent: Agent, recipe: Recipe) => `${ANSWER_SYSTEM(agent)}
+
+지금은 "${recipe.name}" Recipe 를 실행한 결과를 설명한다.
+${recipe.description}
+
+추가 규칙:
+- 단계 순서대로 무엇을 확인했는지 짧게 짚고, 마지막에 전체 결론을 한 문단으로 정리한다.
+- 앞 단계의 결과가 뒤 단계 입력으로 넘어간 부분이 있으면 그 연결을 명시한다.
+- 600자 내외로 쓴다.`;
+
+/**
+ * Recipe 실행 (README §15).
+ *
+ * FinKit 이 "능력의 묶음" 이라면 Recipe 는 "능력들이 협업하는 방법" 이다.
+ * 각 단계를 순서대로 실행하고, 단계가 내보낸 carry 값을 다음 단계 입력으로 넘긴다.
+ * (예: 소비 분석이 계산한 월 여유자금 → 목표저축 플래너의 월 저축 가능액)
+ */
+export async function runRecipe(params: {
+  agent: Agent;
+  recipe: Recipe;
+  equipped: Skill[];
+  baseParams?: Record<string, unknown>;
+  hooks?: {
+    onStep?: (trace: TraceStep, index: number, total: number) => void;
+    onDelta?: (text: string) => void;
+    onReset?: () => void;
+  };
+}): Promise<RuntimeOutput> {
+  const { agent, recipe, equipped, baseParams, hooks } = params;
+
+  const traces: (TraceStep & { facts: string })[] = [];
+  // 단계 간 전달되는 값. 사용자가 미리 넣어둔 금융 프로필에서 출발한다.
+  const carried: Record<string, unknown> = { ...(baseParams ?? {}) };
+  const used: string[] = [];
+
+  for (const [i, step] of recipe.steps.entries()) {
+    const skill = equipped.find((s) => s.id === step.skillId);
+    if (!skill) continue;
+
+    const r = runSkill(skill, `${recipe.name} — ${step.note}`, carried);
+    const trace: TraceStep & { facts: string } = {
+      skillId: skill.id,
+      skillName: skill.name,
+      icon: skill.icon,
+      executor: skill.executor.type,
+      summary: `${step.note} · ${r.summary}`,
+      sources: r.sources,
+      data: r.data,
+      ms: r.ms,
+      facts: r.facts,
+    };
+    traces.push(trace);
+    used.push(skill.id);
+    hooks?.onStep?.({ ...trace, facts: undefined } as unknown as TraceStep, i, recipe.steps.length);
+
+    // 이 단계가 내보낸 값을 다음 단계 입력에 합친다.
+    if (r.carry) Object.assign(carried, r.carry);
+  }
+
+  let content: string | null = null;
+  let streamed = 0;
+  if (llmAvailable() && traces.length) {
+    const user = [
+      `[Recipe] ${recipe.name}`,
+      `[단계별 실행 결과]`,
+      traces.map((t, i) => `### ${i + 1}. ${t.skillName} (${t.executor})\n${t.facts}`).join("\n\n"),
+    ].join("\n");
+    const opts = { system: RECIPE_SYSTEM(agent, recipe), user, maxTokens: 8000, effort: "medium" as const };
+    if (hooks?.onDelta) {
+      const onDelta = hooks.onDelta;
+      content = await completeStream(opts, (t) => {
+        streamed += t.length;
+        onDelta(t);
+      });
+    } else {
+      content = await complete(opts);
+    }
+  }
+
+  const fallback = traces.length
+    ? [
+        `${recipe.name} 을 ${traces.length}단계로 실행했습니다.`,
+        "",
+        ...traces.map((t, i) => `${i + 1}. 【${t.skillName}】\n${t.facts}`),
+      ].join("\n")
+    : `${recipe.name} 을 실행하려면 필요한 Skill 을 먼저 장착해야 합니다.`;
+
+  if (hooks?.onDelta && content === null) {
+    if (streamed > 0) hooks.onReset?.();
+    hooks.onDelta(fallback);
+  }
+
+  const finalContent = content ?? fallback;
+
+  return {
+    message: {
+      id: `msg_${Date.now().toString(36)}_r`,
+      role: "agent",
+      content: finalContent,
+      trace: traces.map(({ facts: _f, ...t }) => t),
+      evidence: content ? checkEvidence(finalContent, factsOf(traces)) : undefined,
+      sources: Array.from(new Set(traces.flatMap((t) => t.sources))),
+      recipeName: recipe.name,
+      createdAt: new Date().toISOString(),
+    },
+    usedSkillIds: used,
+  };
 }

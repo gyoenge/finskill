@@ -31,6 +31,7 @@ export default function OnboardingPage() {
     housing: "자취",
     interests: ["housing", "wealth", "education"],
     knowledge: "기초",
+    finance: {},
   });
 
   const [result, setResult] = useState<{
@@ -124,6 +125,46 @@ export default function OnboardingPage() {
               value={form.knowledge}
               onChange={(v) => setForm({ ...form, knowledge: v })}
             />
+          </Field>
+
+          <Field label="금융 정보 (선택)">
+            <p className="mb-2 text-[11.5px] leading-relaxed text-ink-400">
+              한 번 입력해두면 소비 분석·목표저축 Skill 이 매번 되묻지 않습니다.
+              이 브라우저에만 저장되며 서버로 전송되지 않습니다.
+            </p>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {(
+                [
+                  ["income", "월 수입"],
+                  ["rent", "월세/주거비"],
+                  ["food", "식비"],
+                  ["transport", "교통비"],
+                  ["etc", "기타 지출"],
+                ] as const
+              ).map(([key, label]) => (
+                <label key={key} className="block">
+                  <span className="mb-1 block text-[11.5px] text-ink-500">{label}</span>
+                  <span className="relative block">
+                    <input
+                      inputMode="numeric"
+                      value={form.finance?.[key] ? String(form.finance[key]! / 10000) : ""}
+                      onChange={(e) => {
+                        const man = Number(e.target.value.replace(/[^0-9]/g, ""));
+                        setForm((f) => ({
+                          ...f,
+                          finance: { ...f.finance, [key]: man ? man * 10000 : undefined },
+                        }));
+                      }}
+                      placeholder="0"
+                      className="w-full rounded-xl border border-line bg-surface py-2 pl-3 pr-10 text-[13px] outline-none focus:border-brand-400"
+                    />
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[11.5px] text-ink-400">
+                      만원
+                    </span>
+                  </span>
+                </label>
+              ))}
+            </div>
           </Field>
 
           {error && <p className="text-[12px] text-risk-high">{error}</p>}

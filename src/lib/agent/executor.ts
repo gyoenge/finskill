@@ -25,6 +25,11 @@ export interface SkillResult {
   data: unknown;
   /** LLM 에게 넘길 사실 근거 텍스트 */
   facts: string;
+  /**
+   * Recipe 실행 시 다음 단계로 넘길 값 (§15).
+   * 예: 소비 분석이 산출한 월 여유자금 → 목표저축 플래너의 capacity
+   */
+  carry?: Record<string, number>;
 }
 
 export interface ExecContext {
@@ -148,11 +153,16 @@ const housingSearch = (agency: "SH" | "LH"): Handler => (ctx) => {
         .join("\n")
     : `${agency} 공고 중 조건에 맞는 결과가 없습니다.`;
 
+  // 가장 부담이 적은 공고의 보증금을 뒤 단계(목표저축 플래너)의 목표 금액으로 넘긴다.
+  // 독립준비 Recipe 에서 "이 집에 들어가려면 얼마를 언제까지 모아야 하는가" 로 이어진다.
+  const cheapest = list[0];
+
   return {
     summary: `${total}개 공고 중 조건에 맞는 ${list.length}건`,
     sources: agency === "SH" ? ["SH 서울주택도시공사", "공공데이터포털"] : ["LH 한국토지주택공사", "공공데이터포털"],
     data: { kind: "housing", items: list },
     facts,
+    carry: cheapest ? { goal: cheapest.deposit * 10000 } : undefined,
   };
 };
 
@@ -319,6 +329,10 @@ const spendingAnalyze: Handler = (ctx) => {
     sources: ["사용자 입력값", "통계청 가계동향조사(비교 기준)"],
     data: { kind: "spending", income, items, spend, saving, savingRate, housingRatio, reducible, top },
     facts,
+    // 남는 돈을 뒤 단계로 넘긴다.
+    //  capacity → 목표저축 플래너의 월 저축 가능액
+    //  monthly  → 적금 계산의 월 납입액 (임의값 대신 실제 여력으로 계산)
+    carry: { capacity: Math.max(saving, 0), monthly: Math.max(saving, 0), income },
   };
 };
 
@@ -402,6 +416,8 @@ const tuitionPlan: Handler = (ctx) => {
     sources: ["한국장학재단 학자금대출 안내", "결정론적 계산"],
     data: { kind: "tuition", tuition, scholarship, perSemester, semesters, totalNeed, monthlyIfSaved },
     facts,
+    // 실부담 등록금을 뒤 단계(목표저축 플래너)의 목표 금액으로 넘긴다.
+    carry: { goal: perSemester },
   };
 };
 

@@ -152,6 +152,21 @@ export interface OnboardingProfile {
   housing: string;
   interests: Category[];
   knowledge: string;
+  /**
+   * 금융 프로필 (선택).
+   * 온보딩에서 한 번 받아두면 소비 분석·목표저축 Skill 이 매번 되묻지 않는다.
+   * 서버에 저장되지 않고 이 브라우저에만 남는다.
+   */
+  finance?: FinanceProfile;
+}
+
+/** 금액은 모두 원 단위 */
+export interface FinanceProfile {
+  income?: number;
+  rent?: number;
+  food?: number;
+  transport?: number;
+  etc?: number;
 }
 
 /** README §26 user_skills */
@@ -181,8 +196,22 @@ export interface ChatMessage {
   trace?: TraceStep[];
   /** README §14 Skill Gap */
   gap?: SkillGap;
+  /** 답변 ↔ Skill 결과 대조 결과 */
+  evidence?: EvidenceCheck;
+  /** Recipe 로 실행된 경우 그 이름 (§15) */
+  recipeName?: string;
   sources?: string[];
   createdAt: string;
+}
+
+/** README §19 를 확장한 근거 검증 결과 — 답변의 숫자가 Skill 결과와 일치하는지 */
+export interface EvidenceCheck {
+  /** Skill 결과에서 확인된 수치 */
+  verified: string[];
+  /** Skill 결과에 없어 확인하지 못한 수치 */
+  unverified: string[];
+  /** 이번 실행 결과에 없는데 답변에 등장한 고유명(공고명·상품명 등) */
+  strayEntities: string[];
 }
 
 export interface TraceStep {

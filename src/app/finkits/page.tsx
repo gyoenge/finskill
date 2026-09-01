@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useStore, Loading } from "@/components/StoreProvider";
 import { FINKITS, PERSONA_MAP, RECIPES } from "@/lib/data/personas";
-import { Card, SectionHeader } from "@/components/ui";
+import { Card, LinkButton, SectionHeader } from "@/components/ui";
 import { InstallKitButton } from "@/components/actions";
 import { SkillChip } from "@/components/SkillCard";
 
@@ -98,7 +98,10 @@ export default function FinKitPage() {
         />
         <ul className="grid gap-3 md:grid-cols-2">
           {RECIPES.map((r) => {
-            const missing = r.steps.map((s) => s.skillId).filter((id) => !installed.has(id));
+            const stepIds = r.steps.map((s) => s.skillId);
+            const missing = stepIds.filter((id) => !installed.has(id));
+            // 모든 단계를 실행할 수 있는 Agent 를 찾는다.
+            const runnableAgent = state.agents.find((a) => stepIds.every((id) => a.skillIds.includes(id)));
             return (
               <Card as="li" key={r.id} className="flex flex-col p-4">
                 <p className="text-[14px] font-bold text-ink-900">{r.name}</p>
@@ -123,9 +126,14 @@ export default function FinKitPage() {
                 <div className="mt-3 border-t border-line pt-3">
                   {missing.length > 0 ? (
                     <InstallKitButton skillIds={missing} label={`Recipe 실행에 필요한 ${missing.length}개 설치`} />
+                  ) : runnableAgent ? (
+                    // 모든 단계 Skill 이 장착된 Agent 로 순차 실행한다 (§15)
+                    <LinkButton href={`/agents/${runnableAgent.id}/chat?recipe=${r.id}`} size="sm">
+                      ▶ 이 Recipe 실행하기
+                    </LinkButton>
                   ) : (
-                    <p className="text-[12px] font-semibold text-brand-700">
-                      ✓ 이 Recipe 를 바로 실행할 수 있습니다
+                    <p className="text-[12px] text-ink-400">
+                      실행하려면 모든 단계 Skill 을 장착한 에이전트가 필요합니다.
                     </p>
                   )}
                 </div>

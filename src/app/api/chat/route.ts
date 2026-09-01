@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { Agent, ChatMessage, Skill } from "@/lib/types";
-import { runAgent } from "@/lib/agent/runtime";
+import { runAgent, runRecipe } from "@/lib/agent/runtime";
+import { RECIPES } from "@/lib/data/personas";
 import { llmAvailable } from "@/lib/llm";
 import { SKILLS } from "@/lib/data/skills";
 
@@ -25,9 +26,11 @@ export async function POST(req: Request) {
     history?: ChatMessage[];
     message: string;
     extraParams?: Record<string, unknown>;
+    /** 지정하면 일반 대화 대신 해당 Recipe 를 순차 실행한다 (§15) */
+    recipeId?: string;
   };
 
-  const { agent, equipped, customSkills = [], history = [], message, extraParams } = body;
+  const { agent, equipped, customSkills = [], history = [], message, extraParams, recipeId } = body;
 
   if (!agent?.id) return NextResponse.json({ error: "Agent 정보가 없습니다." }, { status: 400 });
   if (!message?.trim()) return NextResponse.json({ error: "메시지가 비어 있습니다." }, { status: 400 });
@@ -46,6 +49,26 @@ export async function POST(req: Request) {
       };
 
       try {
+        const recipe = recipeId ? RECIPES.find((r) => r.id === recipeId) : undefined;
+
+        if (recipe) {
+          const { message: agentMessage, usedSkillIds } = await runRecipe({
+            agent,
+            recipe,
+            equipped: equipped ?? [],
+            baseParams: extraParams,
+            hooks: {
+              // 단계가 끝날 때마다 Trace 를 누적해 보내 진행 상황이 보이게 한다.
+              onStep: (_t, i, total) => send({ type: "step", index: i + 1, total }),
+              onDelta: (text) => send({ type: "delta", text }),
+              onReset: () => send({ type: "reset" }),
+            },
+          });
+          send({ type: "trace", trace: agentMessage.trace ?? [] });
+          send({ type: "done", message: agentMessage, usedSkillIds, llm: llmAvailable() });
+          return;
+        }
+
         const { message: agentMessage, usedSkillIds } = await runAgent({
           agent,
           query: message.trim(),

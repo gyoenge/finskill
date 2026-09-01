@@ -144,7 +144,24 @@ src/
 | 7 | Skill Passport | `src/components/Passport.tsx` — DATA SOURCE / CAN DO / CANNOT DO / PERMISSION / RISK / LAST UPDATED |
 | 8 | Skill Gap | `src/lib/agent/router.ts` + `src/components/SkillGapPanel.tsx` — 탐지 → 추천 → 승인 → 장착 → **원래 요청 자동 재실행** |
 
-추가 구현: **Skill DNA**(§17), **Skill Recipe**(§15), **Custom Skill Builder**(§21) 및 Manifest 자동 변환(§22).
+추가 구현: **Skill DNA**(§17), **Custom Skill Builder**(§21) 및 Manifest 자동 변환(§22).
+
+### 고도화 (§19·§34 강화)
+
+| 기능 | 구현 |
+|---|---|
+| **근거 대조** | `src/lib/agent/evidence.ts` — 답변의 금액·비율·날짜·고유명을 Skill 이 만든 `facts` 와 결정론적으로 대조. LLM 재호출 없음. 반올림(±1%)은 인정하고, 날짜는 숫자 추출에서 제외해 오탐을 줄였다. 결과는 채팅에 `✓ 근거 대조 20/20` 배지로 표시되고, 불일치 수치와 "이번 실행 결과에 없는 공고명"을 따로 경고한다 |
+| **Recipe 실행 엔진** | `runRecipe()` in `src/lib/agent/runtime.ts` — §15 의 Recipe 를 순차 실행하고, 각 단계가 내보낸 `carry` 를 다음 단계 입력으로 전달. FinKit 화면의 "▶ 이 Recipe 실행하기" → `?recipe=<id>` 로 채팅에서 자동 실행 |
+| **금융 프로필** | 온보딩에서 수입·고정지출을 선택 입력받아 localStorage 에 보관하고, 채팅 요청마다 `extraParams` 로 전달. 소비 분석·목표저축이 매번 되묻지 않는다 |
+
+**Recipe 단계 연결(carry) 예시** — 독립준비 Recipe:
+
+```
+소비 분석      → capacity·monthly (월 여유자금 60만원)
+SH 청년주택 검색 → goal (가장 저렴한 공고의 보증금 400만원)
+적금 계산       → 실제 여력 기준 만기 수령액
+목표저축 플래너   → 월 333,333원 필요 · 달성 가능
+```
 
 ---
 
