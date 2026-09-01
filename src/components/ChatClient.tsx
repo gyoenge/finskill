@@ -7,7 +7,6 @@ import type { Agent, ChatMessage, Skill } from "@/lib/types";
 import { Card } from "@/components/ui";
 import { SkillTrace } from "@/components/Trace";
 import { SkillGapPanel } from "@/components/SkillGapPanel";
-import { post } from "@/components/actions";
 
 /** 화면 07. Agent Chat (README §12, §13, §19, §27) */
 export function ChatClient({
@@ -25,6 +24,8 @@ export function ChatClient({
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  /** 지금 토큰을 받고 있는 말풍선 — 커서를 여기에만 그린다 */
+  const [streamingId, setStreamingId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const endRef = useRef<HTMLDivElement>(null);
 
@@ -32,24 +33,77 @@ export function ChatClient({
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages, busy]);
 
+  /**
+   * /api/chat 은 SSE 로 user → trace → gap? → delta* → done 순서로 이벤트를 보낸다.
+   * Trace 가 먼저 도착하므로 답변 토큰을 기다리는 동안에도 화면이 채워진다.
+   */
   const send = async (text: string) => {
     const query = text.trim();
     if (!query || busy) return;
+
+    const draftId = `draft_${Date.now().toString(36)}`;
     setInput("");
     setError("");
     setBusy(true);
+    setStreamingId(draftId);
     setMessages((prev) => [
       ...prev,
       { id: `local_${Date.now()}`, role: "user", content: query, createdAt: new Date().toISOString() },
+      { id: draftId, role: "agent", content: "", createdAt: new Date().toISOString() },
     ]);
+
+    /** 진행 중인 Agent 말풍선만 갱신한다. */
+    const patchDraft = (fn: (m: ChatMessage) => ChatMessage) =>
+      setMessages((prev) => prev.map((m) => (m.id === draftId ? fn(m) : m)));
+
     try {
-      const res = await post("/api/chat", { agentId: agent.id, message: query });
-      setMessages((prev) => [...prev.slice(0, -1), res.userMessage, res.agentMessage]);
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ agentId: agent.id, message: query }),
+      });
+      if (!res.ok || !res.body) {
+        throw new Error((await res.json().catch(() => ({}))).error ?? "응답에 실패했습니다.");
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        // SSE 는 빈 줄로 이벤트를 구분한다. 마지막 조각은 미완성일 수 있어 버퍼에 남긴다.
+        const chunks = buffer.split("\n\n");
+        buffer = chunks.pop() ?? "";
+
+        for (const chunk of chunks) {
+          const line = chunk.split("\n").find((l) => l.startsWith("data: "));
+          if (!line) continue;
+          const ev = JSON.parse(line.slice(6));
+
+          if (ev.type === "trace") patchDraft((m) => ({ ...m, trace: ev.trace }));
+          else if (ev.type === "gap") patchDraft((m) => ({ ...m, gap: ev.gap }));
+          else if (ev.type === "delta") patchDraft((m) => ({ ...m, content: m.content + ev.text }));
+          else if (ev.type === "reset") patchDraft((m) => ({ ...m, content: "" }));
+          else if (ev.type === "done") {
+            const finalMessage: ChatMessage = ev.message;
+            setMessages((prev) => prev.map((m) => (m.id === draftId ? finalMessage : m)));
+          } else if (ev.type === "error") {
+            setError(ev.error);
+            setMessages((prev) => prev.filter((m) => m.id !== draftId));
+          }
+        }
+      }
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "응답에 실패했습니다.");
+      setMessages((prev) => prev.filter((m) => m.id !== draftId));
     } finally {
       setBusy(false);
+      setStreamingId(null);
     }
   };
 
@@ -106,9 +160,22 @@ export function ChatClient({
                 </p>
               ) : (
                 <div className="fade-up max-w-[92%]">
-                  <div className="rounded-2xl rounded-bl-md bg-canvas px-3.5 py-3">
-                    <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-ink-900">{m.content}</p>
-                  </div>
+                  {/* 스트리밍 초기에는 본문이 비어 있다. 빈 말풍선 대신 진행 표시를 띄운다. */}
+                  {m.content ? (
+                    <div className="rounded-2xl rounded-bl-md bg-canvas px-3.5 py-3">
+                      <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-ink-900">
+                        {m.content}
+                        {m.id === streamingId && (
+                          <span className="ml-0.5 inline-block h-3.5 w-0.5 translate-y-0.5 bg-brand-500 pulse-dot" />
+                        )}
+                      </p>
+                    </div>
+                  ) : (
+                    <Thinking
+                      equipped={equipped}
+                      label={m.trace?.length ? "결과를 정리하는 중…" : "Skill 을 선택하고 실행하는 중…"}
+                    />
+                  )}
                   {m.trace && m.trace.length > 0 && <SkillTrace trace={m.trace} sources={m.sources} />}
                   {m.gap && m.gap.missing.length > 0 && (
                     <SkillGapPanel
@@ -122,28 +189,6 @@ export function ChatClient({
               )}
             </div>
           ))}
-
-          {busy && (
-            <div className="fade-up flex items-center gap-2 rounded-2xl bg-canvas px-3.5 py-3">
-              <span className="flex gap-1">
-                {[0, 1, 2].map((i) => (
-                  <span
-                    key={i}
-                    className="pulse-dot h-1.5 w-1.5 rounded-full bg-brand-500"
-                    style={{ animationDelay: `${i * 0.15}s` }}
-                  />
-                ))}
-              </span>
-              <span className="text-[12px] text-ink-500">Skill 을 선택하고 실행하는 중…</span>
-              <span className="ml-auto flex gap-0.5">
-                {equipped.slice(0, 6).map((s) => (
-                  <span key={s.id} className="text-[13px] opacity-60">
-                    {s.icon}
-                  </span>
-                ))}
-              </span>
-            </div>
-          )}
 
           {error && <p className="text-[12px] text-risk-high">{error}</p>}
           <div ref={endRef} />
@@ -231,6 +276,31 @@ export function ChatClient({
           </p>
         </Card>
       </div>
+    </div>
+  );
+}
+
+/** 답변 토큰이 도착하기 전까지 보여주는 진행 표시 */
+function Thinking({ equipped, label }: { equipped: Skill[]; label: string }) {
+  return (
+    <div className="fade-up flex items-center gap-2 rounded-2xl bg-canvas px-3.5 py-3">
+      <span className="flex gap-1">
+        {[0, 1, 2].map((i) => (
+          <span
+            key={i}
+            className="pulse-dot h-1.5 w-1.5 rounded-full bg-brand-500"
+            style={{ animationDelay: `${i * 0.15}s` }}
+          />
+        ))}
+      </span>
+      <span className="text-[12px] text-ink-500">{label}</span>
+      <span className="ml-auto flex gap-0.5">
+        {equipped.slice(0, 6).map((s) => (
+          <span key={s.id} className="text-[13px] opacity-60">
+            {s.icon}
+          </span>
+        ))}
+      </span>
     </div>
   );
 }

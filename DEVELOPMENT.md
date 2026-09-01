@@ -107,7 +107,7 @@ src/
 | 2 | Persona Recommendation | `src/lib/recommend.ts` `matchPersona()` — 상태·주거·지식·관심사 규칙 기반 스코어링 |
 | 3 | FinKit | `src/app/finkits/` — Persona별 4종, 부족한 Skill만 골라 일괄 설치 |
 | 4 | Agent Builder | `src/components/AgentBuilder.tsx` — STEP 1~5 + Preview + Skill DNA + 권한 미리보기 |
-| 5 | Agent Chat | `src/app/agents/[id]/chat/` + `src/lib/agent/runtime.ts` |
+| 5 | Agent Chat | `src/app/agents/[id]/chat/` + `src/lib/agent/runtime.ts` — SSE 스트리밍 |
 | 6 | Skill Trace | `src/components/Trace.tsx` — "어떻게 찾았나요?" / 실행 Skill · Executor 종류 · 소요시간 · 출처 |
 | 7 | Skill Passport | `src/components/Passport.tsx` — DATA SOURCE / CAN DO / CANNOT DO / PERMISSION / RISK / LAST UPDATED |
 | 8 | Skill Gap | `src/lib/agent/router.ts` + `src/components/SkillGapPanel.tsx` — 탐지 → 추천 → 승인 → 장착 → **원래 요청 자동 재실행** |
@@ -193,6 +193,27 @@ README §31 의 MVP 후보 8개 + FinKit / Skill Gap 구성을 위한 4개.
 - 금융사기: "저금리 대환대출 + 앱 설치 + 인증번호" → 위험 신호 3건 · 위험도 **높음**
 - LLM 키가 잘못된 경우: 라우팅·실행은 정상 동작하고 요약만 Fallback (HTTP 200, 크래시 없음)
 
+### 스트리밍 (SSE)
+
+Agent Chat 은 `/api/chat` 에서 Server-Sent Events 로 진행 상황을 흘려보냅니다.
+
+```
+user → trace → gap? → delta* → done
+```
+
+- `trace` 를 먼저 보내 답변 생성을 기다리는 동안 Skill 실행 결과가 화면에 먼저 뜹니다.
+- LLM 이 스트리밍 도중 끊기면 `reset` 으로 부분 텍스트를 버린 뒤 Fallback 답변을 보냅니다.
+  (잘린 문장 뒤에 Fallback 이 덧붙어 뒤섞이는 것을 막습니다.)
+- 키가 없거나 호출이 실패하면 `delta` 한 번으로 Fallback 답변 전체를 보냅니다.
+
+측정 결과 (동일 질문 기준):
+
+| 지표 | 스트리밍 전 | 스트리밍 후 |
+|---|---|---|
+| Skill Trace 표시 | 11.5초 | **2.7초** |
+| 첫 답변 토큰 | 11.5초 | **4.2초** |
+| 전체 완료 | 11.5초 | 11.6초 |
+
 ### LLM 응답 품질 (claude-opus-5, 9개 케이스 전수)
 
 평가 하네스는 각 질문마다 라우팅된 Skill · Skill 원본 결과 · 최종 답변을 나란히 출력해 대조합니다.
@@ -214,9 +235,9 @@ README §31 의 MVP 후보 8개 + FinKit / Skill Gap 구성을 위한 4개.
 
 1. **외부 API 미연동** — SH / LH / 한국장학재단 / 온통청년 데이터는 목업 시드입니다.
    `src/lib/agent/executor.ts` 의 각 핸들러에서 시드 배열을 `fetch` 로 바꾸면 나머지 파이프라인은 그대로 동작합니다.
-2. **응답 지연 10~21초** (중앙값 약 13초) — Skill 라우팅과 답변 생성으로 LLM 을 2회 순차 호출하고,
-   Opus 5 의 thinking 이 더해진 결과입니다. 개선 여지: 답변 스트리밍(체감 지연 감소), effort 하향,
-   또는 라우팅을 규칙 기반으로 고정하고 LLM 은 설명에만 사용.
+2. **전체 응답 완료까지는 여전히 10~20초** — 스트리밍으로 체감 지연은 해결했지만(첫 콘텐츠 2.7초),
+   전체 완료 시간 자체는 그대로입니다. 더 줄이려면 effort 하향, 또는 라우팅을 규칙 기반으로 고정하고
+   LLM 은 설명에만 사용하는 방법이 있습니다.
 3. **인증·다중 사용자 없음** — 단일 데모 사용자 파일 스토어입니다. Supabase Auth + Postgres 로 이전 시
    `src/lib/store.ts` 의 함수 시그니처를 유지한 채 내부만 교체하면 됩니다.
 4. **RAG 는 키워드 검색** — pgvector 임베딩 대신 별칭 기반 스코어링입니다. (§32 의 pgvector 는 미적용)

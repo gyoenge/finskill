@@ -64,6 +64,48 @@ export async function complete(opts: {
   }
 }
 
+/**
+ * complete() 의 스트리밍 버전.
+ *
+ * 답변 생성은 10초 이상 걸릴 수 있어, 완성될 때까지 기다리면 화면이 멈춘 것처럼 보인다.
+ * 토큰이 도착하는 대로 onDelta 로 흘려보내 체감 지연을 줄인다.
+ * 실패하면 complete() 와 동일하게 null 을 돌려주고 호출부가 Fallback 으로 넘어간다.
+ */
+export async function completeStream(
+  opts: {
+    system: string;
+    user: string;
+    maxTokens?: number;
+    effort?: "low" | "medium" | "high";
+  },
+  onDelta: (text: string) => void,
+): Promise<string | null> {
+  const c = getClient();
+  if (!c) return null;
+  try {
+    const stream = c.messages.stream({
+      model: MODEL,
+      max_tokens: opts.maxTokens ?? 8000,
+      system: opts.system,
+      output_config: { effort: opts.effort ?? "medium" },
+      messages: [{ role: "user", content: opts.user }],
+    });
+
+    // thinking 블록은 흘려보내지 않는다. 사용자에게 노출할 것은 최종 답변뿐이다.
+    stream.on("text", (delta) => onDelta(delta));
+
+    const final = await stream.finalMessage();
+    return final.content
+      .filter((b): b is Anthropic.TextBlock => b.type === "text")
+      .map((b) => b.text)
+      .join("\n")
+      .trim();
+  } catch (err) {
+    console.error("[finskill] LLM 스트리밍 실패 — fallback 으로 전환합니다.", err);
+    return null;
+  }
+}
+
 /** 모델 응답에서 첫 번째 JSON 객체를 안전하게 추출한다. */
 export function extractJson<T>(text: string | null): T | null {
   if (!text) return null;

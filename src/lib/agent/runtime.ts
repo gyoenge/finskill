@@ -1,7 +1,7 @@
 import type { Agent, ChatMessage, Skill, SkillGap, TraceStep } from "@/lib/types";
 import { runSkill } from "@/lib/agent/executor";
 import { routeSkills } from "@/lib/agent/router";
-import { complete, llmAvailable } from "@/lib/llm";
+import { complete, completeStream, llmAvailable } from "@/lib/llm";
 
 /**
  * Agent Runtime (README §33)
@@ -64,8 +64,21 @@ export async function runAgent(params: {
   history: ChatMessage[];
   /** Skill Detail / Builder 등에서 넘어온 명시적 입력값 */
   extraParams?: Record<string, unknown>;
+  /**
+   * 스트리밍 훅. 넘기면 각 단계가 끝나는 즉시 호출되어 UI 가 점진적으로 그릴 수 있다.
+   * 넘기지 않으면 기존과 동일하게 완성된 결과만 반환한다.
+   */
+  hooks?: {
+    /** Skill 실행이 끝난 직후 — Trace 를 먼저 띄워 답변 대기 시간을 채운다 */
+    onTrace?: (trace: TraceStep[]) => void;
+    onGap?: (gap: SkillGap) => void;
+    /** 답변 토큰이 도착할 때마다 */
+    onDelta?: (text: string) => void;
+    /** 지금까지 흘려보낸 본문을 버리라는 신호 (스트리밍 도중 실패 시) */
+    onReset?: () => void;
+  };
 }): Promise<RuntimeOutput> {
-  const { agent, query, equipped, catalog, history, extraParams } = params;
+  const { agent, query, equipped, catalog, history, extraParams, hooks } = params;
 
   // 1) Intent 분석 + Skill 선택 + Skill Gap 탐지
   const decision = await routeSkills(query, equipped, catalog);
@@ -89,6 +102,9 @@ export async function runAgent(params: {
     });
   }
 
+  // Skill 실행 결과는 답변 생성보다 훨씬 빨리 나오므로 먼저 내보낸다.
+  hooks?.onTrace?.(traces.map(({ facts: _facts, ...t }) => t));
+
   // 3) Skill Gap 구성 (§14)
   const gap: SkillGap | undefined = decision.missing.length
     ? {
@@ -99,9 +115,12 @@ export async function runAgent(params: {
         }),
       }
     : undefined;
+  if (gap) hooks?.onGap?.(gap);
 
   // 4) 결과 설명 (LLM)
   let content: string | null = null;
+  /** 스트리밍으로 실제 내보낸 글자 수 — 중간 실패 시 롤백 판단에 쓴다 */
+  let streamed = 0;
   if (llmAvailable()) {
     const recent = history
       .slice(-6)
@@ -118,7 +137,24 @@ export async function runAgent(params: {
     ]
       .filter(Boolean)
       .join("\n");
-    content = await complete({ system: ANSWER_SYSTEM(agent), user, maxTokens: 8000, effort: "medium" });
+    const llmOpts = { system: ANSWER_SYSTEM(agent), user, maxTokens: 8000, effort: "medium" as const };
+    if (hooks?.onDelta) {
+      const onDelta = hooks.onDelta;
+      content = await completeStream(llmOpts, (t) => {
+        streamed += t.length;
+        onDelta(t);
+      });
+    } else {
+      content = await complete(llmOpts);
+    }
+  }
+
+  // LLM 이 실패하면 Fallback 답변을 대신 내보낸다.
+  // 스트리밍 도중 끊긴 경우에는 이미 흘려보낸 부분 텍스트를 먼저 버려야
+  // 잘린 문장 뒤에 Fallback 이 덧붙는 뒤섞임을 막을 수 있다.
+  if (hooks?.onDelta && content === null) {
+    if (streamed > 0) hooks.onReset?.();
+    hooks.onDelta(fallbackAnswer(agent, query, traces, gap));
   }
 
   const message: ChatMessage = {
