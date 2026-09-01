@@ -99,7 +99,8 @@ export async function routeSkills(
     query,
   ].join("\n");
 
-  const raw = await complete({ system: ROUTER_SYSTEM, user, maxTokens: 700, temperature: 0 });
+  // Skill 선택은 단순 분류에 가까우므로 effort low 로 빠르게 처리한다.
+  const raw = await complete({ system: ROUTER_SYSTEM, user, maxTokens: 4000, effort: "low" });
   const parsed = extractJson<{
     intent?: string;
     selected?: string[];

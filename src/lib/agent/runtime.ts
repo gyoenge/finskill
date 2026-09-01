@@ -118,7 +118,7 @@ export async function runAgent(params: {
     ]
       .filter(Boolean)
       .join("\n");
-    content = await complete({ system: ANSWER_SYSTEM(agent), user, maxTokens: 900, temperature: 0.3 });
+    content = await complete({ system: ANSWER_SYSTEM(agent), user, maxTokens: 8000, effort: "medium" });
   }
 
   const message: ChatMessage = {

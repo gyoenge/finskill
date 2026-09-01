@@ -25,8 +25,19 @@ cp .env.example .env.local
 키가 없으면 규칙 기반 Fallback Router 가 Skill 을 고르고, Skill 실행 결과가 요약 없이 그대로 표시됩니다.
 키가 있으면 Claude 가 (1) Skill 선택 과 (2) 결과 설명 두 지점을 담당합니다.
 
+**identity-linked API key** 를 쓰는 경우 `ANTHROPIC_WORKSPACE_ID` 도 함께 넣어야 합니다.
+없으면 `400 anthropic-workspace-id is required ...` 로 호출이 실패하고 Fallback 으로 넘어갑니다.
+
 > 참고: Anthropic SDK 는 `ANTHROPIC_BASE_URL` 환경변수를 자동으로 사용합니다.
 > 셸에 이 값이 이미 설정되어 있다면 의도한 엔드포인트인지 확인하세요.
+
+### 모델 파라미터 주의사항
+
+현행 모델(Opus 5 / Sonnet 5 등)은 이전 세대와 요청 계약이 다릅니다. `src/lib/llm.ts` 참고:
+
+- `temperature` / `top_p` / `top_k` 는 **제거**되었습니다. 보내면 `400 \`temperature\` is deprecated for this model.` 출력 편차는 `output_config.effort` 로 조절합니다.
+- thinking 이 기본 활성화이고 **thinking 토큰도 `max_tokens` 를 소비**합니다. 예산을 작게 잡으면 본문이 잘리므로 라우터 4000 / 답변 8000 으로 설정했습니다.
+- effort 는 라우터 `low`(단순 분류), 답변 `medium` 입니다.
 
 ### 데모 초기화
 
@@ -47,7 +58,7 @@ curl -X DELETE http://localhost:3000/api/state
 | Backend | Next.js Route Handlers | README §32 의 "FastAPI 또는 Next.js API" 중 후자 |
 | Data (사용자 상태) | 파일 기반 JSON 스토어 | Supabase 로 교체 가능하도록 `src/lib/store.ts` 한 곳에 격리 |
 | Data (금융 데이터) | 목업 시드 (`src/lib/data/seed`) | 실제 기관 공고 필드 구조를 따름 |
-| LLM | Anthropic Claude (`claude-sonnet-5`) | 키 없으면 자동 Fallback |
+| LLM | Anthropic Claude (`claude-opus-5`) | 키 없으면 자동 Fallback. `FINSKILL_MODEL` 로 변경 가능 |
 
 **사용자 상태 저장 위치**: `node_modules/.cache/finskill/store.json`
 (`next dev` 의 파일 워처가 프로젝트 루트를 감시하기 때문에, 그 안에 두면 상태를 저장할 때마다
@@ -182,14 +193,30 @@ README §31 의 MVP 후보 8개 + FinKit / Skill Gap 구성을 위한 4개.
 - 금융사기: "저금리 대환대출 + 앱 설치 + 인증번호" → 위험 신호 3건 · 위험도 **높음**
 - LLM 키가 잘못된 경우: 라우팅·실행은 정상 동작하고 요약만 Fallback (HTTP 200, 크래시 없음)
 
+### LLM 응답 품질 (claude-opus-5, 9개 케이스 전수)
+
+평가 하네스는 각 질문마다 라우팅된 Skill · Skill 원본 결과 · 최종 답변을 나란히 출력해 대조합니다.
+
+| 검증 항목 | 결과 |
+|---|---|
+| Calculator 값 인용 | 만기 수령액 `3,657,740원`, 원금·이자·세금 전부 계산값 그대로 인용 |
+| 소비 분석 인용 | 저축률 33.3%, 고정비 35.0%, 절감 가능 10만원 — 재계산 없이 인용 |
+| 검색 결과 환각 | 없음. 공고명·보증금·마감일이 모두 시드 데이터와 일치 |
+| 금융사기 판정 | 위험 점수 95점(높음), 탐지 신호 3건과 대응 절차 정확 |
+| Skill Gap 안내 | 부족 Skill(목표저축 플래너)을 답변 말미에 자연어로 안내 |
+| Skill 없는 질문 ("오늘 날씨") | 지어내지 않고 기능 없음을 밝힌 뒤 기상청 안내 |
+| 투자자문 회피 ("삼성전자 사도 될까") | 종목 판단 거절, 판단 기준만 제시 (§23 준수) |
+| 실행 범위 고지 | "신청·접수는 대신 할 수 없다"를 상황에 맞게 반복 고지 |
+
 ---
 
 ## 9. 현재 한계 / 다음 단계
 
 1. **외부 API 미연동** — SH / LH / 한국장학재단 / 온통청년 데이터는 목업 시드입니다.
    `src/lib/agent/executor.ts` 의 각 핸들러에서 시드 배열을 `fetch` 로 바꾸면 나머지 파이프라인은 그대로 동작합니다.
-2. **LLM 경로 실사용 미검증** — 코드 경로와 실패 시 Fallback 은 확인했지만, 유효한 `ANTHROPIC_API_KEY` 로
-   실제 응답 품질을 확인하지는 못했습니다. 키를 넣고 Agent Chat 을 한 번 돌려보시는 것을 권합니다.
+2. **응답 지연 10~21초** (중앙값 약 13초) — Skill 라우팅과 답변 생성으로 LLM 을 2회 순차 호출하고,
+   Opus 5 의 thinking 이 더해진 결과입니다. 개선 여지: 답변 스트리밍(체감 지연 감소), effort 하향,
+   또는 라우팅을 규칙 기반으로 고정하고 LLM 은 설명에만 사용.
 3. **인증·다중 사용자 없음** — 단일 데모 사용자 파일 스토어입니다. Supabase Auth + Postgres 로 이전 시
    `src/lib/store.ts` 의 함수 시그니처를 유지한 채 내부만 교체하면 됩니다.
 4. **RAG 는 키워드 검색** — pgvector 임베딩 대신 별칭 기반 스코어링입니다. (§32 의 pgvector 는 미적용)
