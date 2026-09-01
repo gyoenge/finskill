@@ -145,7 +145,7 @@ export function AgentBuilder({
                     }`}
                   >
                     <span
-                      className={`puzzle-piece flex h-8 w-8 shrink-0 items-center justify-center text-[15px] ${
+                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-[15px] ${
                         on ? "bg-white" : "bg-canvas"
                       }`}
                     >
@@ -190,9 +190,7 @@ export function AgentBuilder({
         <Card className="p-4">
           <p className="text-[11px] font-bold tracking-wider text-ink-400">AGENT PREVIEW</p>
           <div className="mt-2.5 flex items-start gap-3">
-            <div className="puzzle-piece flex h-12 w-12 shrink-0 items-center justify-center bg-brand-500 text-[22px]">
-              🤖
-            </div>
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-[22px]">🤖</span>
             <div className="min-w-0">
               <p className="truncate text-[15px] font-bold text-ink-900">{name || "이름 없는 Agent"}</p>
               <p className="text-[12px] text-ink-500">{persona || "Persona 미설정"}</p>

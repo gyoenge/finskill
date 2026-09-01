@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useStore, Loading } from "@/components/StoreProvider";
 import { recommendKit, recommendSkills } from "@/lib/recommend";
-import { PERSONA_MAP } from "@/lib/data/personas";
-import { Card, LinkButton, SectionHeader, Stat } from "@/components/ui";
+import { FINKITS, PERSONA_MAP } from "@/lib/data/personas";
+import { Card, IconTile, LinkButton, SectionHeader, Stat } from "@/components/ui";
+import { HeroArt } from "@/components/Logo";
 import { SkillCard, SkillChip } from "@/components/SkillCard";
 import { SkillDna } from "@/components/SkillDna";
 import { InstallKitButton, ResetDemoButton } from "@/components/actions";
@@ -43,18 +44,14 @@ export default function HomePage() {
 
   return (
     <div className="space-y-8">
-      {/* Greeting */}
+      {/* Greeting + Hero (시안: 홈/대시보드) */}
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-[12px] font-semibold text-brand-600">
-            {persona.icon} {persona.name} · {state.profile.region} · {state.profile.housing}
-          </p>
-          <h1 className="mt-1 text-[22px] font-extrabold leading-tight tracking-tight text-ink-900">
-            안녕하세요, 오늘도 필요한 금융 능력을
-            <br className="hidden sm:block" /> 하나씩 연결해볼까요?
+          <h1 className="text-[22px] font-extrabold tracking-tight text-ink-900">
+            안녕하세요, {persona.name}님!
           </h1>
-          <p className="mt-1.5 text-[13px] text-ink-500">
-            현재 {installedSkills.length}개의 Skill 을 보유하고 있습니다.
+          <p className="mt-1 text-[13px] text-ink-500">
+            {state.profile.region} · {state.profile.housing} · 보유 스킬 {installedSkills.length}개
           </p>
         </div>
         <div className="flex items-center gap-1">
@@ -65,11 +62,35 @@ export default function HomePage() {
         </div>
       </header>
 
+      <section className="hero-gradient flex items-center justify-between gap-4 overflow-hidden rounded-[1.25rem] px-6 py-6 md:px-8">
+        <div className="min-w-0">
+          <p className="text-[20px] font-extrabold leading-snug tracking-tight text-ink-900 md:text-[23px]">
+            필요한 <span className="text-brand-600">스킬</span>을 연결해
+            <br />
+            나만의 <span className="text-accent-600">금융 에이전트</span>를 완성하세요.
+          </p>
+          <div className="mt-4">
+            {agent ? (
+              <LinkButton href={`/agents/${agent.id}/chat`} size="md">
+                에이전트와 대화하기
+              </LinkButton>
+            ) : (
+              <LinkButton href="/agents/new" size="md">
+                ＋ 에이전트 만들기
+              </LinkButton>
+            )}
+          </div>
+        </div>
+        <div className="hidden sm:block">
+          <HeroArt />
+        </div>
+      </section>
+
       {/* My Agent */}
       <section>
         <SectionHeader
-          title="My Agent"
-          desc="Persona + Instructions + Skill Set + LLM 으로 구성된 나만의 금융 Agent"
+          title="나의 에이전트"
+          desc="Persona + Instructions + Skill Set + LLM 으로 구성된 나만의 금융 에이전트"
           action={
             agent ? (
               <LinkButton href={`/agents/${agent.id}/chat`} size="sm">
@@ -77,7 +98,7 @@ export default function HomePage() {
               </LinkButton>
             ) : (
               <LinkButton href="/agents/new" size="sm">
-                Agent 만들기
+                에이전트 만들기
               </LinkButton>
             )
           }
@@ -86,9 +107,7 @@ export default function HomePage() {
           <div className="grid gap-3 md:grid-cols-[1.4fr_1fr]">
             <Card className="p-4">
               <div className="flex items-start gap-3">
-                <div className="puzzle-piece flex h-12 w-12 shrink-0 items-center justify-center bg-brand-500 text-[22px]">
-                  🤖
-                </div>
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-[22px]">🤖</span>
                 <div className="min-w-0">
                   <p className="text-[15px] font-bold text-ink-900">{agent.name}</p>
                   <p className="text-[12px] text-ink-500">{agent.persona}</p>
@@ -144,69 +163,50 @@ export default function HomePage() {
         </Card>
       )}
 
-      {/* 추천 FinKit */}
+      {/* 추천 FinKit — 시안의 4열 카드 */}
       <section>
         <SectionHeader
           title="추천 FinKit"
           desc={`"${state.profile.region}에서 ${state.profile.housing} 중인 ${persona.name}에게 많이 필요한 Skill 묶음입니다."`}
           action={
             <Link href="/finkits" className="text-[12px] font-semibold text-brand-700 hover:underline">
-              전체 보기
+              전체 보기 →
             </Link>
           }
         />
-        <Card className="p-4">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="flex items-start gap-3">
-              <div className="puzzle-piece flex h-12 w-12 shrink-0 items-center justify-center bg-brand-50 text-[22px]">
-                {kit.icon}
-              </div>
-              <div>
-                <p className="text-[15px] font-bold text-ink-900">{kit.name}</p>
-                <p className="text-[12px] text-ink-500">{kit.tagline}</p>
-              </div>
-            </div>
-            {kitMissing.length > 0 ? (
-              <InstallKitButton skillIds={kitMissing} />
-            ) : (
-              <span className="rounded-xl bg-brand-50 px-3 py-2 text-[12px] font-semibold text-brand-700">
-                ✓ 전부 설치됨
-              </span>
-            )}
-          </div>
-          <p className="mt-3 text-[12px] leading-relaxed text-ink-500">{kit.reason}</p>
-          <ul className="mt-3 grid gap-2 sm:grid-cols-2">
-            {kit.skillIds.map((id) => {
-              const s = catalog.find((c) => c.id === id);
-              if (!s) return null;
-              return (
-                <li key={id}>
-                  <SkillChip
-                    skill={s}
-                    right={
-                      installedIds.has(id) ? (
-                        <span className="shrink-0 text-[11px] font-semibold text-brand-600">보유</span>
-                      ) : (
-                        <span className="shrink-0 text-[11px] text-ink-300">미보유</span>
-                      )
-                    }
-                  />
-                </li>
-              );
-            })}
-          </ul>
-        </Card>
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {FINKITS.map((k) => {
+            const missing = k.skillIds.filter((id) => !installedIds.has(id));
+            return (
+              <Card as="li" key={k.id} hover className="flex flex-col p-4">
+                <IconTile icon={k.icon} category="housing" size={40} />
+                <p className="mt-3 text-[14px] font-bold text-ink-900">{k.name}</p>
+                <p className="mt-1 line-clamp-2 text-[12px] leading-relaxed text-ink-500">{k.tagline}</p>
+                <div className="mt-3 flex items-center justify-between border-t border-line pt-2.5">
+                  <span className="text-[11.5px] font-semibold text-ink-400">{k.skillIds.length}개 스킬</span>
+                  {missing.length === 0 ? (
+                    <span className="text-[11.5px] font-bold text-brand-600">보유 중</span>
+                  ) : (
+                    <Link href="/finkits" className="text-[11.5px] font-bold text-accent-600 hover:underline">
+                      {missing.length}개 부족
+                    </Link>
+                  )}
+                </div>
+              </Card>
+            );
+          })}
+        </ul>
       </section>
 
       {/* 추천 Skill */}
       {recommended.length > 0 && (
         <section>
           <SectionHeader
-            title="추천 Skill"
+            title="추천 스킬"
             desc="Persona 와 관심 분야를 기준으로 정렬했습니다."
             action={
               <Link href="/shop" className="text-[12px] font-semibold text-brand-700 hover:underline">
-                Skill Shop
+                스킬샵
               </Link>
             }
           />
@@ -221,7 +221,7 @@ export default function HomePage() {
       {/* 최근 사용 Skill */}
       {recent.length > 0 && (
         <section>
-          <SectionHeader title="최근 사용한 Skill" desc="Agent 가 최근 대화에서 실행한 Skill 입니다." />
+          <SectionHeader title="최근 사용한 스킬" desc="에이전트가 최근 대화에서 실행한 스킬입니다." />
           <ul className="grid gap-2 sm:grid-cols-2">
             {recent.map((s) => (
               <li key={s.id}>

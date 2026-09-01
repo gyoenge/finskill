@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { Agent, ChatMessage, Skill } from "@/lib/types";
-import { Card } from "@/components/ui";
+import { Card, IconTile } from "@/components/ui";
 import { SkillTrace } from "@/components/Trace";
 import { SkillGapPanel } from "@/components/SkillGapPanel";
 import { useStore } from "@/components/StoreProvider";
@@ -144,12 +144,15 @@ export function ChatClient({
       <Card className="flex h-[calc(100vh-13rem)] min-h-[32rem] flex-col overflow-hidden">
         {/* Header */}
         <div className="flex items-center gap-3 border-b border-line px-4 py-3">
-          <div className="puzzle-piece flex h-9 w-9 shrink-0 items-center justify-center bg-brand-500 text-[17px]">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-[19px]">
             🤖
-          </div>
+          </span>
           <div className="min-w-0 flex-1">
             <p className="truncate text-[13.5px] font-bold text-ink-900">{agent.name}</p>
-            <p className="truncate text-[11px] text-ink-400">{equipped.length}개 Skill 장착 · {agent.model}</p>
+            <p className="flex items-center gap-1.5 text-[11px] text-ink-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-brand-500" />
+              활성 · 스킬 {equipped.length}개
+            </p>
           </div>
           <Link href="/my-skills" className="shrink-0 text-[11.5px] font-semibold text-ink-400 hover:text-brand-700">
             ⚙︎ 설정
@@ -160,7 +163,7 @@ export function ChatClient({
         <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
           {messages.length === 0 && (
             <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
-              <div className="puzzle-piece flex h-14 w-14 items-center justify-center bg-brand-50 text-[26px]">💬</div>
+              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-[26px]">💬</span>
               <p className="text-[14px] font-semibold text-ink-900">무엇을 도와드릴까요?</p>
               <p className="max-w-sm text-[12.5px] leading-relaxed text-ink-500">
                 장착된 Skill 을 조합해 답변합니다. 필요한 Skill 이 없으면 무엇이 부족한지 알려드립니다.
@@ -183,20 +186,15 @@ export function ChatClient({
           {messages.map((m) => (
             <div key={m.id} className={m.role === "user" ? "flex justify-end" : ""}>
               {m.role === "user" ? (
-                <p className="max-w-[80%] rounded-2xl rounded-br-md bg-brand-600 px-3.5 py-2.5 text-[13px] leading-relaxed text-white">
+                <p className="max-w-[80%] rounded-2xl rounded-br-md bg-brand-500 px-3.5 py-2.5 text-[13px] leading-relaxed text-white shadow-[0_6px_16px_-10px_rgba(18,184,134,0.9)]">
                   {m.content}
                 </p>
               ) : (
                 <div className="fade-up max-w-[92%]">
                   {/* 스트리밍 초기에는 본문이 비어 있다. 빈 말풍선 대신 진행 표시를 띄운다. */}
                   {m.content ? (
-                    <div className="rounded-2xl rounded-bl-md bg-canvas px-3.5 py-3">
-                      <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-ink-900">
-                        {m.content}
-                        {m.id === streamingId && (
-                          <span className="ml-0.5 inline-block h-3.5 w-0.5 translate-y-0.5 bg-brand-500 pulse-dot" />
-                        )}
-                      </p>
+                    <div className="card-soft rounded-2xl rounded-bl-md px-3.5 py-3">
+                      <MessageText text={m.content} cursor={m.id === streamingId} />
                     </div>
                   ) : (
                     <Thinking
@@ -246,9 +244,18 @@ export function ChatClient({
           <button
             type="submit"
             disabled={busy || !input.trim()}
-            className="rounded-xl bg-brand-600 px-4 py-2.5 text-[13px] font-semibold text-white transition hover:bg-brand-700 disabled:opacity-40"
+            aria-label="보내기"
+            className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl bg-brand-500 text-white transition hover:bg-brand-600 disabled:opacity-40"
           >
-            보내기
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <path
+                d="M4 12l16-8-5.5 16-3-6.5L4 12z"
+                stroke="currentColor"
+                strokeWidth="1.9"
+                strokeLinejoin="round"
+                fill="none"
+              />
+            </svg>
           </button>
         </form>
       </Card>
@@ -270,9 +277,7 @@ export function ChatClient({
             <ul className="space-y-1.5">
               {equipped.map((s) => (
                 <li key={s.id} className="flex items-center gap-2.5 rounded-xl border border-line px-2.5 py-2">
-                  <span className="puzzle-piece flex h-8 w-8 shrink-0 items-center justify-center bg-brand-50 text-[15px]">
-                    {s.icon}
-                  </span>
+                  <IconTile icon={s.icon} category={s.category[0]} size={34} />
                   <div className="min-w-0 flex-1">
                     <Link
                       href={`/shop/${s.id}`}
@@ -326,6 +331,53 @@ export function ChatClient({
         </Card>
       </div>
     </div>
+  );
+}
+
+/**
+ * Agent 답변 렌더러.
+ * LLM 이 **굵게** 와 '- ' 불릿을 쓰므로 그대로 두면 기호가 노출된다.
+ * dangerouslySetInnerHTML 없이 최소한의 마크다운만 해석한다.
+ */
+function MessageText({ text, cursor }: { text: string; cursor: boolean }) {
+  const lines = text.split("\n");
+  return (
+    <div className="space-y-1 text-[13px] leading-relaxed text-ink-900">
+      {lines.map((line, i) => {
+        const bullet = /^\s*[-•]\s+/.test(line);
+        const body = bullet ? line.replace(/^\s*[-•]\s+/, "") : line;
+        if (!body.trim()) return <div key={i} className="h-1.5" />;
+        const content = (
+          <>
+            {bold(body)}
+            {cursor && i === lines.length - 1 && (
+              <span className="ml-0.5 inline-block h-3.5 w-0.5 translate-y-0.5 bg-brand-500 pulse-dot" />
+            )}
+          </>
+        );
+        return bullet ? (
+          <div key={i} className="flex gap-1.5 pl-0.5">
+            <span className="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-brand-500" />
+            <span className="min-w-0">{content}</span>
+          </div>
+        ) : (
+          <p key={i}>{content}</p>
+        );
+      })}
+    </div>
+  );
+}
+
+/** **굵게** 만 해석한다 */
+function bold(line: string) {
+  return line.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
+    part.startsWith("**") && part.endsWith("**") && part.length > 4 ? (
+      <strong key={i} className="font-bold text-ink-900">
+        {part.slice(2, -2)}
+      </strong>
+    ) : (
+      <span key={i}>{part}</span>
+    ),
   );
 }
 

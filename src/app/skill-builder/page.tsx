@@ -97,7 +97,7 @@ export default function SkillBuilderPage() {
   return (
     <div className="space-y-5">
       <header>
-        <h1 className="text-[22px] font-extrabold tracking-tight text-ink-900">Skill Builder</h1>
+        <h1 className="text-[22px] font-extrabold tracking-tight text-ink-900">스킬 만들기</h1>
         <p className="mt-1 text-[13px] text-ink-500">
           코드 없이 필요한 금융 능력을 직접 만듭니다. 입력한 내용은 표준 Skill Manifest 로 자동 변환됩니다.
         </p>

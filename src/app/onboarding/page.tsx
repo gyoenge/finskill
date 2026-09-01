@@ -137,9 +137,7 @@ export default function OnboardingPage() {
         <div className="space-y-4">
           <Card className="p-5">
             <div className="flex items-start gap-3">
-              <div className="puzzle-piece flex h-14 w-14 shrink-0 items-center justify-center bg-brand-50 text-[26px]">
-                {result.kit.icon}
-              </div>
+              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-[26px]">{result.kit.icon}</span>
               <div>
                 <p className="text-[16px] font-bold text-ink-900">{result.kit.name}</p>
                 <p className="text-[12.5px] text-ink-500">{result.kit.tagline}</p>
@@ -154,9 +152,7 @@ export default function OnboardingPage() {
                 if (!s) return null;
                 return (
                   <li key={id} className="snap-in flex items-center gap-2.5 rounded-xl border border-line px-3 py-2">
-                    <span className="puzzle-piece flex h-8 w-8 items-center justify-center bg-brand-50 text-[15px]">
-                      {s.icon}
-                    </span>
+                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand-50 text-[15px]">{s.icon}</span>
                     <div className="min-w-0">
                       <p className="truncate text-[12.5px] font-semibold text-ink-900">{s.name}</p>
                       <p className="truncate text-[11px] text-ink-400">{s.tagline}</p>

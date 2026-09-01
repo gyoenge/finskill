@@ -5,46 +5,49 @@
  * Simple / Friendly / Trustworthy / Modular / Financial + AI
  */
 @theme {
-  /* Primary — FinSkill Green / Teal */
-  --color-brand-50: #eafaf5;
-  --color-brand-100: #cdf3e7;
-  --color-brand-200: #9fe8d4;
-  --color-brand-300: #63d7bb;
-  --color-brand-400: #2ec2a0;
-  --color-brand-500: #10a888;
-  --color-brand-600: #06886e;
-  --color-brand-700: #086c59;
-  --color-brand-800: #0a5648;
-  --color-brand-900: #09473d;
+  /* Primary — FinSkill Teal (로고 왼쪽 로봇 면) */
+  --color-brand-50: #e8f8f2;
+  --color-brand-100: #cdf1e5;
+  --color-brand-200: #9de5cd;
+  --color-brand-300: #5fd4b1;
+  --color-brand-400: #2ac295;
+  --color-brand-500: #12b886;
+  --color-brand-600: #0da372;
+  --color-brand-700: #0b8560;
+  --color-brand-800: #0a6a4e;
+  --color-brand-900: #085440;
 
-  /* Secondary — FinSkill Blue */
-  --color-accent-50: #eef4ff;
-  --color-accent-100: #dbe6ff;
-  --color-accent-200: #bed2ff;
-  --color-accent-400: #6b95ff;
-  --color-accent-500: #3b6df5;
-  --color-accent-600: #2450d8;
-  --color-accent-700: #1d3fac;
+  /* Secondary — FinSkill Blue (로고 오른쪽 ₩ 면) */
+  --color-accent-50: #eaf2ff;
+  --color-accent-100: #d6e6ff;
+  --color-accent-200: #b3d0ff;
+  --color-accent-400: #5b9bfa;
+  --color-accent-500: #2f7cf6;
+  --color-accent-600: #1f6ae4;
+  --color-accent-700: #1a55bb;
 
-  /* Text — Deep navy */
-  --color-ink-900: #0d1b2e;
-  --color-ink-700: #26374f;
-  --color-ink-500: #566476;
-  --color-ink-400: #7c8798;
-  --color-ink-300: #a8b1bf;
+  /* Text */
+  --color-ink-900: #1b2a38;
+  --color-ink-700: #3c4d5c;
+  --color-ink-500: #6b7c8c;
+  --color-ink-400: #93a1ad;
+  --color-ink-300: #b9c4cd;
 
   /* Surface */
   --color-surface: #ffffff;
-  --color-canvas: #f5f8fa;
-  --color-line: #e4eaf0;
+  --color-canvas: #f3f8f7;
+  --color-line: #e7efec;
 
   /* Risk — 별도 상태색 (§29 Color) */
-  --color-risk-low: #0e8f6f;
-  --color-risk-low-bg: #e6f7f1;
-  --color-risk-medium: #b45309;
-  --color-risk-medium-bg: #fdf3e3;
-  --color-risk-high: #c2263c;
-  --color-risk-high-bg: #fdeaee;
+  --color-risk-low: #0da372;
+  --color-risk-low-bg: #e8f8f2;
+  --color-risk-medium: #c2791a;
+  --color-risk-medium-bg: #fdf4e5;
+  --color-risk-high: #d64560;
+  --color-risk-high-bg: #fdedf0;
+
+  /* 별점 */
+  --color-star: #f2b13c;
 
   --font-sans: "Pretendard", "Apple SD Gothic Neo", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
 }
@@ -101,4 +104,36 @@ body {
 
 .dna-bar {
   transition: width 0.7s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+
+/* 시안의 카드 — 넉넉한 라운드 + 아주 옅은 그림자 */
+.card-soft {
+  border-radius: 1.25rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  box-shadow: 0 1px 2px rgba(27, 42, 56, 0.03), 0 8px 24px -16px rgba(27, 42, 56, 0.12);
+}
+
+.card-soft-hover {
+  transition: box-shadow 0.18s ease, transform 0.18s ease, border-color 0.18s ease;
+}
+.card-soft-hover:hover {
+  border-color: var(--color-brand-200);
+  box-shadow: 0 2px 4px rgba(27, 42, 56, 0.04), 0 16px 32px -20px rgba(27, 42, 56, 0.2);
+  transform: translateY(-1px);
+}
+
+/* Hero 배너 그라데이션 */
+.hero-gradient {
+  background: linear-gradient(107deg, #e9f8f3 0%, #eaf3ff 58%, #e6f0ff 100%);
+}
+
+/* 스킬 아이콘 타일 */
+.icon-tile {
+  border-radius: 0.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }

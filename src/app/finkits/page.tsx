@@ -22,7 +22,7 @@ export default function FinKitPage() {
       <header>
         <h1 className="text-[22px] font-extrabold tracking-tight text-ink-900">FinKit</h1>
         <p className="mt-1 text-[13px] text-ink-500">
-          Persona 별로 미리 구성된 Skill 묶음입니다. 하나씩 찾을 필요 없이 한 번에 설치하세요.
+          Persona 별로 미리 구성된 스킬 묶음입니다. 하나씩 찾을 필요 없이 한 번에 설치하세요.
         </p>
       </header>
 
@@ -35,9 +35,7 @@ export default function FinKitPage() {
             <Card key={kit.id} className={`p-5 ${mine ? "border-brand-300 ring-1 ring-brand-100" : ""}`}>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="flex items-start gap-3">
-                  <div className="puzzle-piece flex h-14 w-14 shrink-0 items-center justify-center bg-brand-50 text-[26px]">
-                    {kit.icon}
-                  </div>
+                  <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-[26px]">{kit.icon}</span>
                   <div>
                     <div className="flex items-center gap-1.5">
                       <p className="text-[16px] font-bold text-ink-900">{kit.name}</p>

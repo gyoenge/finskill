@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { Category, PersonaId, Skill, SkillType } from "@/lib/types";
-import { CATEGORY_LABEL, PERSONAS, TYPE_LABEL, TYPE_TO_AXIS } from "@/lib/data/personas";
+import { CATEGORY_LABEL, PERSONAS, TYPE_LABEL } from "@/lib/data/personas";
 import { SkillCard } from "@/components/SkillCard";
 import { EmptyState } from "@/components/ui";
 
@@ -17,6 +17,11 @@ export function ShopClient({ catalog, installedIds }: { catalog: Skill[]; instal
   const [persona, setPersona] = useState<PersonaId | "all">("all");
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [sort, setSort] = useState<Sort>("popular");
+  const [moreOpen, setMoreOpen] = useState(false);
+
+  // 상세 필터에서 몇 개가 걸려 있는지 — 접혀 있어도 알 수 있게 배지로 표시한다.
+  const activeExtra =
+    (type !== "all" ? 1 : 0) + (persona !== "all" ? 1 : 0) + (verifiedOnly ? 1 : 0);
 
   const list = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -39,12 +44,6 @@ export function ShopClient({ catalog, installedIds }: { catalog: Skill[]; instal
     return out;
   }, [catalog, q, category, type, persona, verifiedOnly, sort]);
 
-  const axisGroups = useMemo(() => {
-    const groups: Record<string, SkillType[]> = { FIND: [], UNDERSTAND: [], MANAGE: [], PROTECT: [] };
-    (Object.keys(TYPE_LABEL) as SkillType[]).forEach((t) => groups[TYPE_TO_AXIS[t]].push(t));
-    return groups;
-  }, []);
-
   return (
     <div className="space-y-5">
       <div className="relative">
@@ -57,8 +56,9 @@ export function ShopClient({ catalog, installedIds }: { catalog: Skill[]; instal
         <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[15px]">🔍</span>
       </div>
 
-      <div className="space-y-2.5">
-        <FilterRow label="분야">
+      {/* 분야 칩 + 정렬 (시안: 스킬샵 상단) */}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-1 flex-wrap items-center gap-1.5">
           <Chip active={category === "all"} onClick={() => setCategory("all")}>
             전체
           </Chip>
@@ -67,59 +67,65 @@ export function ShopClient({ catalog, installedIds }: { catalog: Skill[]; instal
               {CATEGORY_LABEL[c]}
             </Chip>
           ))}
-        </FilterRow>
+        </div>
+        <select
+          value={sort}
+          onChange={(e) => setSort(e.target.value as Sort)}
+          aria-label="정렬"
+          className="shrink-0 rounded-xl border border-line bg-surface px-3 py-1.5 text-[12px] font-semibold text-ink-700 outline-none focus:border-brand-400"
+        >
+          <option value="popular">인기순</option>
+          <option value="new">신규순</option>
+          <option value="rating">평점순</option>
+        </select>
+      </div>
 
-        <FilterRow label="기능">
-          <Chip active={type === "all"} onClick={() => setType("all")}>
-            전체
-          </Chip>
-          {Object.entries(axisGroups).map(([axis, types]) => (
-            <span key={axis} className="flex items-center gap-1.5">
-              <span className="text-[10px] font-bold tracking-wider text-ink-300">{axis}</span>
-              {types.map((t) => (
+      {/* 상세 필터 — README §27 의 Type / Persona / Verified 필터 */}
+      <div>
+        <button
+          onClick={() => setMoreOpen((v) => !v)}
+          className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-ink-500 hover:text-brand-700"
+        >
+          상세 필터
+          {activeExtra > 0 && (
+            <span className="rounded-full bg-brand-500 px-1.5 text-[10px] font-bold text-white">{activeExtra}</span>
+          )}
+          <span className={`transition ${moreOpen ? "rotate-180" : ""}`}>⌄</span>
+        </button>
+
+        {moreOpen && (
+          <div className="fade-up mt-2.5 space-y-2.5 rounded-2xl border border-line bg-surface p-3.5">
+            <FilterRow label="기능">
+              <Chip active={type === "all"} onClick={() => setType("all")}>
+                전체
+              </Chip>
+              {(Object.keys(TYPE_LABEL) as SkillType[]).map((t) => (
                 <Chip key={t} active={type === t} onClick={() => setType(t)}>
                   {TYPE_LABEL[t]}
                 </Chip>
               ))}
-            </span>
-          ))}
-        </FilterRow>
-
-        <FilterRow label="Persona">
-          <Chip active={persona === "all"} onClick={() => setPersona("all")}>
-            전체
-          </Chip>
-          {PERSONAS.map((p) => (
-            <Chip key={p.id} active={persona === p.id} onClick={() => setPersona(p.id)}>
-              {p.icon} {p.name}
-            </Chip>
-          ))}
-        </FilterRow>
-      </div>
-
-      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3">
-        <label className="flex cursor-pointer items-center gap-1.5 text-[12px] font-medium text-ink-500">
-          <input
-            type="checkbox"
-            checked={verifiedOnly}
-            onChange={(e) => setVerifiedOnly(e.target.checked)}
-            className="h-3.5 w-3.5 accent-[var(--color-brand-600)]"
-          />
-          Verified Skill 만 보기
-        </label>
-        <div className="flex items-center gap-1">
-          {(["popular", "new", "rating"] as Sort[]).map((s) => (
-            <button
-              key={s}
-              onClick={() => setSort(s)}
-              className={`rounded-lg px-2.5 py-1 text-[12px] font-semibold transition ${
-                sort === s ? "bg-canvas text-ink-900" : "text-ink-400 hover:text-ink-700"
-              }`}
-            >
-              {s === "popular" ? "인기순" : s === "new" ? "신규순" : "평점순"}
-            </button>
-          ))}
-        </div>
+            </FilterRow>
+            <FilterRow label="Persona">
+              <Chip active={persona === "all"} onClick={() => setPersona("all")}>
+                전체
+              </Chip>
+              {PERSONAS.map((p) => (
+                <Chip key={p.id} active={persona === p.id} onClick={() => setPersona(p.id)}>
+                  {p.icon} {p.name}
+                </Chip>
+              ))}
+            </FilterRow>
+            <label className="flex cursor-pointer items-center gap-1.5 pl-16 text-[12px] font-medium text-ink-500">
+              <input
+                type="checkbox"
+                checked={verifiedOnly}
+                onChange={(e) => setVerifiedOnly(e.target.checked)}
+                className="h-3.5 w-3.5 accent-[var(--color-brand-600)]"
+              />
+              Verified Skill 만 보기
+            </label>
+          </div>
+        )}
       </div>
 
       <p className="text-[12px] text-ink-400">{list.length}개의 Skill</p>

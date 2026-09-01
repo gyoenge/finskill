@@ -17,7 +17,7 @@ export default function ChatPage() {
       <div className="py-16 text-center">
         <p className="text-[15px] font-semibold text-ink-900">존재하지 않는 Agent 입니다.</p>
         <Link href="/agents" className="mt-2 inline-block text-[13px] font-semibold text-brand-700 hover:underline">
-          ← My Agent 로 돌아가기
+          ← 나의 에이전트 로 돌아가기
         </Link>
       </div>
     );
@@ -39,7 +39,7 @@ export default function ChatPage() {
   return (
     <div className="space-y-4">
       <Link href="/agents" className="inline-block text-[12px] font-semibold text-ink-400 hover:text-brand-700">
-        ← My Agent
+        ← 나의 에이전트
       </Link>
       <ChatClient
         agent={agent}

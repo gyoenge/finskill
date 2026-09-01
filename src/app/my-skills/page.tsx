@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useStore, Loading } from "@/components/StoreProvider";
 import { SKILL_MAP } from "@/lib/data/skills";
-import { Card, EmptyState, LinkButton, RiskBadge, SectionHeader, VerifiedBadge } from "@/components/ui";
+import { Card, EmptyState, IconTile, LinkButton, RiskBadge, SectionHeader, VerifiedBadge } from "@/components/ui";
 import { RemoveSkillButton, ToggleSkill } from "@/components/actions";
 import { EquipControl } from "@/components/EquipControl";
 import { SkillDna } from "@/components/SkillDna";
@@ -25,13 +25,13 @@ export default function MySkillsPage() {
     <div className="space-y-6">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-[22px] font-extrabold tracking-tight text-ink-900">My Skills</h1>
+          <h1 className="text-[22px] font-extrabold tracking-tight text-ink-900">나의 스킬</h1>
           <p className="mt-1 text-[13px] text-ink-500">
-            설치한 금융 능력을 관리하고 Agent 에 장착하세요. 총 {rows.length}개 보유 중.
+            내가 보유한 스킬을 관리하고 조합해 보세요. 총 {rows.length}개 보유 중.
           </p>
         </div>
         <LinkButton href="/shop" variant="secondary" size="sm">
-          Skill 더 찾기
+          ＋ 스킬 추가
         </LinkButton>
       </header>
 
@@ -51,12 +51,8 @@ export default function MySkillsPage() {
               return (
                 <Card as="li" key={skill.id} className="p-4">
                   <div className="flex items-start gap-3">
-                    <span
-                      className={`puzzle-piece flex h-11 w-11 shrink-0 items-center justify-center text-[19px] ${
-                        install.enabled ? "bg-brand-50" : "bg-canvas grayscale"
-                      }`}
-                    >
-                      {skill.icon}
+                    <span className={install.enabled ? "" : "grayscale"}>
+                      <IconTile icon={skill.icon} category={skill.category[0]} />
                     </span>
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-1.5">

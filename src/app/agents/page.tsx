@@ -15,11 +15,11 @@ export default function AgentsPage() {
     <div className="space-y-5">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-[22px] font-extrabold tracking-tight text-ink-900">My Agent</h1>
+          <h1 className="text-[22px] font-extrabold tracking-tight text-ink-900">나의 에이전트</h1>
           <p className="mt-1 text-[13px] text-ink-500">장착한 Skill 을 조합해 금융문제를 해결하는 나만의 Agent 입니다.</p>
         </div>
         <LinkButton href="/agents/new" size="sm">
-          ＋ 새 Agent
+          ＋ 에이전트 만들기
         </LinkButton>
       </header>
 
@@ -38,9 +38,7 @@ export default function AgentsPage() {
             return (
               <Card as="li" key={a.id} className="flex flex-col p-4">
                 <div className="flex items-start gap-3">
-                  <div className="puzzle-piece flex h-12 w-12 shrink-0 items-center justify-center bg-brand-500 text-[22px]">
-                    🤖
-                  </div>
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-[22px]">🤖</span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[15px] font-bold text-ink-900">{a.name}</p>
                     <p className="truncate text-[12px] text-ink-500">{a.persona}</p>

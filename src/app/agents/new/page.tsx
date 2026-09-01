@@ -12,12 +12,12 @@ export default function NewAgentPage() {
   return (
     <div className="space-y-5">
       <Link href="/agents" className="inline-block text-[12px] font-semibold text-ink-400 hover:text-brand-700">
-        ← My Agent
+        ← 나의 에이전트
       </Link>
       <header>
-        <h1 className="text-[22px] font-extrabold tracking-tight text-ink-900">Agent Builder</h1>
+        <h1 className="text-[22px] font-extrabold tracking-tight text-ink-900">새로운 에이전트 만들기</h1>
         <p className="mt-1 text-[13px] text-ink-500">
-          Agent = Persona + Instructions + Skill Set + LLM. 퍼즐을 맞추듯 능력을 장착하세요.
+          에이전트 기본 정보를 설정해 주세요. Persona + Instructions + Skill Set + LLM 으로 구성됩니다.
         </p>
       </header>
       <AgentBuilder

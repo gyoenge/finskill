@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import "./globals.css";
-import { BottomNav, PuzzleMark, SideNav } from "@/components/Nav";
+import { BottomNav, SideNav } from "@/components/Nav";
+import { LogoWordmark } from "@/components/Logo";
 import { StoreProvider } from "@/components/StoreProvider";
 
 export const metadata: Metadata = {
@@ -19,15 +20,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <SideNav />
           <div className="flex min-w-0 flex-1 flex-col">
             <header className="flex items-center justify-between border-b border-line bg-surface px-4 py-3 md:hidden">
-              <Link href="/" className="flex items-center gap-2">
-                <PuzzleMark size={20} />
-                <span className="text-[15px] font-extrabold text-ink-900">FinSkill</span>
+              <Link href="/">
+                <LogoWordmark size={26} />
               </Link>
               <Link href="/onboarding" className="text-[12px] font-semibold text-brand-700">
                 Persona 설정
               </Link>
             </header>
-            <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-24 pt-6 md:px-8 md:pb-12">
+            <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-24 pt-6 md:px-8 md:pb-14">
               {children}
             </main>
           </div>

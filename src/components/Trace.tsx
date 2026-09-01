@@ -37,9 +37,7 @@ export function SkillTrace({ trace, sources }: { trace: TraceStep[]; sources?: s
               <li key={`${t.skillId}-${i}`}>
                 <div className="flex items-start gap-2.5">
                   <div className="flex flex-col items-center self-stretch">
-                    <span className="puzzle-piece flex h-8 w-8 shrink-0 items-center justify-center bg-surface text-[14px]">
-                      {t.icon}
-                    </span>
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-surface text-[14px]">{t.icon}</span>
                     {i < trace.length - 1 && <span className="mt-1 w-px flex-1 bg-line" />}
                   </div>
                   <div className="min-w-0 flex-1 pb-1">
