@@ -470,6 +470,48 @@ export const SKILLS: Skill[] = [
     createdAt: "2026.07.11",
     isNew: true,
   },
+  {
+    id: "lh-notice-live",
+    name: "LH 공고 실시간 조회",
+    version: "1.0.0",
+    icon: "📡",
+    tagline: "LH 임대주택 모집공고를 공공데이터포털에서 실시간으로 가져옵니다.",
+    description:
+      "한국토지주택공사 분양임대공고문 조회 서비스(공공데이터포털)를 실시간 호출해 현재 진행 중인 공고와 마감일을 확인합니다. 시드 데이터가 아닌 실제 공고입니다. 다만 이 API 는 공고 목록만 제공하므로 보증금·월세·면적은 알 수 없습니다.",
+    category: ["housing", "youth"],
+    type: ["search"],
+    provider: "FinSkill Official",
+    dataSources: ["LH 청약플러스 (공공데이터포털 실시간 조회)"],
+    permissions: {
+      network: ["apis.data.go.kr"],
+      personalData: false,
+      writeAction: false,
+      financialTransaction: false,
+    },
+    risk: "low",
+    executor: { type: "http", ref: "lh_notice_live" },
+    passport: {
+      canDo: ["진행 중인 공고 조회", "마감일 확인", "공고 유형·지역 확인", "공고문 링크 제공"],
+      cannotDo: [
+        "보증금·월세 비교 (API 미제공)",
+        "면적·자격요건 확인 (공고문 참조)",
+        "실제 신청 접수",
+        "당첨 결과 조회",
+      ],
+      riskReason:
+        "공공데이터포털의 공개 API 를 읽기 전용으로 호출하며 개인정보를 보내지 않습니다. 응답 지연 시 6초에 중단합니다.",
+      lastUpdated: "2026.09.02",
+    },
+    inputs: [{ key: "region", label: "희망 지역", kind: "region", required: false, placeholder: "예: 인천" }],
+    examples: ["지금 모집 중인 LH 공고 알려줘", "인천 LH 공고 마감일 언제야?"],
+    keywords: ["LH", "공고", "실시간", "모집", "마감", "청약", "임대주택", "지금"],
+    personas: ["university", "living-alone", "firstjob"],
+    rating: 4.5,
+    installCount: 1240,
+    verified: true,
+    createdAt: "2026.09.02",
+    isNew: true,
+  },
 ];
 
 export const SKILL_MAP: Record<string, Skill> = Object.fromEntries(

@@ -19,6 +19,8 @@ import { DEPOSITS, HOUSING, SCHOLARSHIPS, YOUTH_POLICIES } from "@/lib/data/seed
 interface Num {
   raw: string;
   value: number;
+  /** 원·%·건 같은 단위가 붙었는지 — 사실 주장인지 판별하는 데 쓴다 */
+  hasUnit: boolean;
 }
 
 const UNIT: Record<string, number> = { 억: 1e8, 만: 1e4, 천: 1e3 };
@@ -36,7 +38,7 @@ function extractNumbers(text: string): Num[] {
     const n = Number(digits);
     if (!Number.isFinite(n)) continue;
     const scale = m[2] ? UNIT[m[2]] : 1;
-    out.push({ raw: m[0].trim(), value: n * scale });
+    out.push({ raw: m[0].trim(), value: n * scale, hasUnit: Boolean(m[2] || m[3]) });
   }
   return out;
 }
@@ -61,6 +63,40 @@ function extractDates(text: string): string[] {
     out.push(`${m[1]}.${m[2].padStart(2, "0")}.${m[3].padStart(2, "0")}`);
   }
   return out;
+}
+
+const MD_RE = /(?<!\d)(\d{1,2})\s*(?:[/.]|월\s*)(\d{1,2})\s*일?(?!\d)/g;
+
+/**
+ * 연도 없는 날짜(9/17, 9월 17일)를 "MM.DD" 로 뽑는다.
+ * LLM 이 "마감 2026.09.17" 을 "9/17 마감" 으로 줄여 쓰는 경우가 많은데,
+ * 그대로 두면 17 · 21 같은 조각 숫자가 미확인으로 잡힌다.
+ */
+function extractMonthDays(text: string): string[] {
+  const out: string[] = [];
+  const re = new RegExp(MD_RE.source, "g");
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    const mm = Number(m[1]);
+    const dd = Number(m[2]);
+    if (mm >= 1 && mm <= 12 && dd >= 1 && dd <= 31) {
+      out.push(`${String(mm).padStart(2, "0")}.${String(dd).padStart(2, "0")}`);
+    }
+  }
+  return out;
+}
+
+/**
+ * 유효한 월-일 표기만 지운다.
+ * MD_RE 는 "45.2" 같은 소수도 형태상 매칭하므로 무조건 지우면
+ * "저축률 45.2%" 의 비율이 통째로 사라져 환각을 놓친다.
+ */
+function withoutMonthDays(text: string): string {
+  return text.replace(new RegExp(MD_RE.source, "g"), (whole, a: string, b: string) => {
+    const mm = Number(a);
+    const dd = Number(b);
+    return mm >= 1 && mm <= 12 && dd >= 1 && dd <= 31 ? " " : whole;
+  });
 }
 
 /** 시드 데이터 전체의 고유명 — 이번 실행 결과에 없는데 답변에 나오면 환각 신호 */
@@ -92,13 +128,30 @@ export function checkEvidence(answer: string, traces: { facts: string }[]): Evid
 
   const evNums = extractNumbers(withoutDates(evidenceText));
   const evDates = new Set(extractDates(evidenceText));
+  // 근거 날짜에 등장한 연도. 답변이 "2026년" 처럼 연도만 언급하는 경우를 인정한다.
+  const evYears = new Set(Array.from(evDates, (d) => d.slice(0, 4)));
+  // 근거 날짜의 월-일. 답변의 축약 날짜와 대조한다.
+  const evMonthDays = new Set(Array.from(evDates, (d) => d.slice(5)));
 
   const verified: string[] = [];
   const unverified: string[] = [];
 
-  for (const claim of extractNumbers(withoutDates(answer))) {
-    // 순번(1., 2.)이나 한 자리 수는 사실 주장으로 보기 어렵다.
+  // 축약 날짜를 먼저 처리하고, 그 조각이 숫자로 다시 잡히지 않도록 지운다.
+  const answerBody = withoutDates(answer);
+  for (const md of extractMonthDays(answerBody)) {
+    (evMonthDays.has(md) ? verified : unverified).push(md.replace(".", "/"));
+  }
+
+  for (const claim of extractNumbers(withoutMonthDays(answerBody))) {
+    // 단위 없는 작은 수(순번·조각)는 사실 주장으로 보기 어렵다.
+    // 금액·비율·점수는 거의 항상 단위가 붙는다.
+    if (!claim.hasUnit && claim.value < 1000) continue;
     if (claim.value < 10) continue;
+    // 날짜에서 파생된 연도 언급("2026년")은 근거 날짜의 연도와 대조한다.
+    if (/^20\d{2}\s*년?$/.test(claim.raw) && evYears.has(String(claim.value))) {
+      verified.push(claim.raw);
+      continue;
+    }
     (matches(claim, evNums) ? verified : unverified).push(claim.raw);
   }
 

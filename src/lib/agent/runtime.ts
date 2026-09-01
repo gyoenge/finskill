@@ -90,7 +90,7 @@ export async function runAgent(params: {
   for (const id of decision.selected) {
     const skill = equipped.find((s) => s.id === id);
     if (!skill) continue;
-    const r = runSkill(skill, query, extraParams ?? {});
+    const r = await runSkill(skill, query, extraParams ?? {});
     traces.push({
       skillId: skill.id,
       skillName: skill.name,
@@ -215,7 +215,7 @@ export async function runRecipe(params: {
     const skill = equipped.find((s) => s.id === step.skillId);
     if (!skill) continue;
 
-    const r = runSkill(skill, `${recipe.name} — ${step.note}`, carried);
+    const r = await runSkill(skill, `${recipe.name} — ${step.note}`, carried);
     const trace: TraceStep & { facts: string } = {
       skillId: skill.id,
       skillName: skill.name,

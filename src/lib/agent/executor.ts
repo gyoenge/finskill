@@ -8,6 +8,7 @@ import {
   YOUTH_POLICIES,
 } from "@/lib/data/seed";
 import type { Skill } from "@/lib/types";
+import { fetchLhNotices, lhKeyAvailable, noticeFacts } from "@/lib/agent/api/lh";
 
 /**
  * Skill Executor (README §20, §34)
@@ -130,7 +131,8 @@ export function extractParams(query: string, skill: Skill): Record<string, strin
 
 /* ------------------------- Executors ------------------------- */
 
-type Handler = (ctx: ExecContext) => SkillResult;
+/** 실제 외부 API 를 부르는 Skill 이 있으므로 비동기도 허용한다 */
+type Handler = (ctx: ExecContext) => SkillResult | Promise<SkillResult>;
 
 const housingSearch = (agency: "SH" | "LH"): Handler => (ctx) => {
   const region = String(ctx.params.region ?? "");
@@ -498,7 +500,41 @@ const fraudCheck: Handler = (ctx) => {
   };
 };
 
+/**
+ * LH 분양임대공고문 실시간 조회 (공공데이터포털 15058530).
+ * 시드 기반 lh_housing_search 와 달리 실제 공고를 가져오지만, 금액 정보는 없다.
+ */
+const lhNoticeLive: Handler = async (ctx) => {
+  const region = String(ctx.params.region ?? "");
+  const items = await fetchLhNotices({ region: region || undefined, size: 30 });
+
+  if (items === null) {
+    return {
+      summary: lhKeyAvailable() ? "LH API 응답 없음" : "LH API 키 미설정",
+      sources: ["LH 청약플러스 (공공데이터포털)"],
+      data: { kind: "lhNotice", items: [], failed: true },
+      facts: lhKeyAvailable()
+        ? "LH 실시간 공고 조회에 실패했습니다(응답 지연 또는 오류). 이 사실을 사용자에게 알리고, 공고는 LH 청약플러스에서 직접 확인하도록 안내하세요."
+        : "LH 실시간 공고 API 키가 설정되지 않아 조회할 수 없습니다. 이 사실을 사용자에게 알리세요.",
+    };
+  }
+
+  const open = items.filter((n) => n.status.includes("공고중") || !n.status);
+  const list = (open.length ? open : items).slice(0, 6);
+
+  return {
+    summary: `실시간 공고 ${items.length}건 중 ${list.length}건`,
+    sources: ["LH 청약플러스 (공공데이터포털 실시간 조회)"],
+    data: { kind: "lhNotice", items: list },
+    facts: [
+      noticeFacts(list),
+      "주의: 이 API 는 공고 목록만 제공합니다. 보증금·월세·면적·자격요건은 응답에 없으므로 절대 추측하지 말고, 상세 조건은 공고문에서 확인해야 한다고 안내하세요.",
+    ].join("\n"),
+  };
+};
+
 export const HANDLERS: Record<string, Handler> = {
+  lh_notice_live: lhNoticeLive,
   sh_housing_search: housingSearch("SH"),
   lh_housing_search: housingSearch("LH"),
   scholarship_search: scholarshipSearch,
@@ -521,10 +557,14 @@ const customFallback = (skill: Skill): Handler => (ctx) => ({
   facts: `사용자가 정의한 Skill "${skill.name}" 이 실행되었습니다.\n설명: ${skill.description}\n입력: ${JSON.stringify(ctx.params)}\n이 Skill 은 아직 외부 데이터 연결이 없으므로, 입력값과 설명을 근거로만 답하고 확인이 필요한 부분은 명확히 밝히세요.`,
 });
 
-export function runSkill(skill: Skill, query: string, extraParams: Record<string, unknown> = {}): SkillResult & { ms: number } {
+export async function runSkill(
+  skill: Skill,
+  query: string,
+  extraParams: Record<string, unknown> = {},
+): Promise<SkillResult & { ms: number }> {
   const start = Date.now();
   const handler = HANDLERS[skill.executor.ref] ?? customFallback(skill);
   const params = { ...extractParams(query, skill), ...(extraParams as Record<string, string | number>) };
-  const result = handler({ query, params });
+  const result = await handler({ query, params });
   return { ...result, ms: Date.now() - start };
 }
