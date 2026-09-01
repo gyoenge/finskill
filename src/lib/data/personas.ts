@@ -87,12 +87,12 @@ export const FINKITS: FinKit[] = [
     tagline: "첫 월급부터 자산 형성까지",
     reason: "급여 관리·비상금·예적금·신용관리처럼 사회 진입 직후 1년에 필요한 Skill 을 묶었습니다.",
     skillIds: [
+      "youth-asset-match",
       "spending-analyzer",
       "goal-savings-planner",
       "deposit-compare",
       "savings-calculator",
       "credit-coach",
-      "youth-policy-search",
     ],
   },
   {

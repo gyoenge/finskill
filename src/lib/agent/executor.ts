@@ -9,6 +9,7 @@ import {
 } from "@/lib/data/seed";
 import type { Skill } from "@/lib/types";
 import { fetchLhNotices, lhKeyAvailable, noticeFacts } from "@/lib/agent/api/lh";
+import { buildAssetPlan, planFacts, type AssetProfile } from "@/lib/agent/youth-asset";
 
 /**
  * Skill Executor (README §20, §34)
@@ -113,6 +114,15 @@ export function extractParams(query: string, skill: Skill): Record<string, strin
 
   const scholarship = parseMoney(query, ["장학금"]);
   if (scholarship) p.scholarship = scholarship;
+
+  const median = query.match(/중위\s*(?:소득)?\s*([0-9]+)\s*%/);
+  if (median) p.householdMedianPct = Number(median[1]);
+
+  const ageM = query.match(/(?:만\s*)?([1-9][0-9])\s*(?:세|살)/);
+  if (ageM) p.age = Number(ageM[1]);
+
+  const annual = parseMoney(query, ["연봉", "총급여", "연소득"]);
+  if (annual) p.personalIncome = annual;
 
   const level = query.match(/([0-9]+)\s*분위/);
   if (level) p.incomeLevel = Number(level[1]);
@@ -533,8 +543,106 @@ const lhNoticeLive: Handler = async (ctx) => {
   };
 };
 
+/**
+ * 청년 자산형성 제도 매칭 (§34).
+ * 자격 판정·중복 규칙·조합 최적화를 전부 코드가 수행한다. LLM 은 설명만 한다.
+ */
+const youthAssetMatch: Handler = (ctx) => {
+  const p = ctx.params;
+  const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : undefined);
+
+  const age = num(p.age) ?? guessAge(ctx.query);
+  const personalIncome = num(p.personalIncome) ?? num(p.income) ?? 0;
+  const householdMedianPct = num(p.householdMedianPct);
+  const monthlyCapacity = num(p.capacity) ?? num(p.monthly) ?? 0;
+
+  if (!age || !personalIncome) {
+    return {
+      summary: "나이·소득 정보 없음 — 입력 필요",
+      sources: ["청년 자산형성 제도 조건표 (2026.09.02 기준)"],
+      data: { kind: "youthAsset", needsInput: true },
+      facts:
+        "가입 자격을 판정하려면 최소한 나이와 개인 연소득이 필요합니다. " +
+        "가구 기준중위소득 %와 월 저축 여력도 있으면 정확도가 올라갑니다. 사용자에게 물어보세요. " +
+        "임의로 값을 가정해 판정하지 마세요.",
+    };
+  }
+
+  // 제도명이 "언급"된 것과 "가입 중"인 것은 다르다.
+  // "청년도약계좌랑 내일저축계좌 둘 다 되나?" 는 질문이지 기가입 신고가 아니다.
+  // 가입 표현이 제도명 근처에 있을 때만 기가입으로 본다.
+  const enrolled = detectEnrolled(ctx.query);
+
+  const profile: AssetProfile = {
+    age,
+    personalIncome,
+    householdMedianPct,
+    hasEarnedIncome: !/무직|소득 ?없/.test(ctx.query),
+    enrolled,
+    monthlyCapacity,
+  };
+
+  const plan = buildAssetPlan(profile);
+  const okCount = plan.verdicts.filter((v) => v.eligible).length;
+
+  return {
+    summary: `가입 가능 ${okCount}개 · 예상 정부기여금 ${Math.round(plan.totalBenefit).toLocaleString("ko-KR")}원`,
+    sources: [
+      "서민금융진흥원 청년미래적금",
+      "금융위원회 보도자료",
+      "보건복지부 청년내일저축계좌",
+      "국회예산정책처 ISA 보고서",
+    ],
+    data: { kind: "youthAsset", plan, profile },
+    facts: planFacts(plan, profile),
+    carry: plan.totalMonthly > 0 ? { monthly: plan.totalMonthly } : undefined,
+  };
+};
+
+/**
+ * 이미 가입한 제도를 추출한다.
+ * 제도명 뒤 25자 안에 가입 표현이 있거나, 앞에 "이미/기존" 이 붙은 경우만 인정한다.
+ * 단순 언급을 기가입으로 오인하면 중복 규칙이 잘못 걸려 가입 가능한 제도가 차단된다.
+ */
+function detectEnrolled(q: string): string[] {
+  const NAMES: [string, RegExp][] = [
+    ["leap-account", /청년도약계좌/g],
+    ["tomorrow-savings", /(청년)?내일저축계좌/g],
+    ["future-savings", /청년미래적금/g],
+    ["isa", /\bISA\b/gi],
+  ];
+  const ENROLLED = /(가입|들고|넣고|유지|납입|붓고|하는 중|중이)/;
+  const PRIOR = /(이미|기존에|현재)\s*$/;
+
+  const out: string[] = [];
+  for (const [id, re] of NAMES) {
+    const rx = new RegExp(re.source, re.flags);
+    let m: RegExpExecArray | null;
+    while ((m = rx.exec(q)) !== null) {
+      const after = q.slice(m.index + m[0].length, m.index + m[0].length + 25);
+      const before = q.slice(Math.max(0, m.index - 10), m.index);
+      // "가입 가능", "가입할 수" 는 질문이지 기가입이 아니다.
+      const asks = /가입\s*(가능|할|하려|되)/.test(after);
+      if (!asks && (ENROLLED.test(after) || PRIOR.test(before))) {
+        out.push(id);
+        break;
+      }
+    }
+  }
+  return out;
+}
+
+/** "27살", "만 25세" 같은 표기에서 나이를 뽑는다 */
+function guessAge(q: string): number | undefined {
+  const m = q.match(/(?:만\s*)?([1-9][0-9])\s*(?:세|살)/);
+  if (!m) return undefined;
+  const n = Number(m[1]);
+  return n >= 15 && n <= 60 ? n : undefined;
+}
+
 export const HANDLERS: Record<string, Handler> = {
   lh_notice_live: lhNoticeLive,
+  youth_asset_match: youthAssetMatch,
   sh_housing_search: housingSearch("SH"),
   lh_housing_search: housingSearch("LH"),
   scholarship_search: scholarshipSearch,

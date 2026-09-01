@@ -512,6 +512,69 @@ export const SKILLS: Skill[] = [
     createdAt: "2026.09.02",
     isNew: true,
   },
+  {
+    id: "youth-asset-match",
+    name: "청년 자산형성 매칭",
+    version: "1.0.0",
+    icon: "🏦",
+    tagline: "내 조건에서 가입 가능한 제도와 최적 조합을 계산합니다.",
+    description:
+      "청년미래적금·청년내일저축계좌·ISA 등 청년 자산형성 제도의 가입요건을 내 나이·소득·가구소득과 대조해 판정하고, 중복가입 제한을 반영해 월 저축여력 안에서 정부기여금이 최대가 되는 조합을 계산합니다. 자격 판정과 계산은 전부 코드가 수행하며 AI 는 결과를 설명만 합니다.",
+    category: ["wealth", "saving", "youth"],
+    type: ["match", "calculate", "compare"],
+    provider: "FinSkill Official",
+    dataSources: [
+      "서민금융진흥원 청년미래적금",
+      "금융위원회 보도자료",
+      "보건복지부 청년내일저축계좌",
+      "국회예산정책처 ISA 보고서",
+    ],
+    permissions: {
+      network: [],
+      personalData: true,
+      writeAction: false,
+      financialTransaction: false,
+    },
+    risk: "medium",
+    executor: { type: "calculator", ref: "youth_asset_match" },
+    passport: {
+      canDo: [
+        "제도별 가입 자격 판정",
+        "중복가입 가능 여부 판정",
+        "정부기여금 최대 조합 계산",
+        "만기 수령 기여금 산출",
+      ],
+      cannotDo: [
+        "실제 계좌 개설·가입 신청",
+        "소득·가구소득 자동 조회",
+        "심사 통과 여부 보장",
+        "조사되지 않은 지자체 사업 판정",
+      ],
+      riskReason:
+        "소득·가구소득 등 개인 금융정보를 입력받으므로 MEDIUM 입니다. 제도 조건은 2026.09.02 조사 기준 초안이며 최신 공고 확인이 필요합니다.",
+      lastUpdated: "2026.09.02",
+    },
+    inputs: [
+      { key: "age", label: "나이", kind: "number", required: true, unit: "세" },
+      { key: "personalIncome", label: "개인 연소득", kind: "money", required: true, unit: "원" },
+      { key: "householdMedianPct", label: "가구 기준중위소득", kind: "number", required: false, unit: "%" },
+      { key: "capacity", label: "월 저축 여력", kind: "money", required: false, unit: "원" },
+    ],
+    examples: [
+      "27살 연봉 3200만원인데 청년도약계좌랑 청년내일저축계좌 둘 다 되나?",
+      "만 29세 총급여 4500만원, 월 40만원 저축 가능한데 뭐부터 넣어야 해?",
+    ],
+    keywords: [
+      "청년도약계좌", "청년미래적금", "내일저축", "ISA", "자산형성", "정부기여금",
+      "중복가입", "둘 다", "조합", "가입 가능", "매칭", "적금 뭐",
+    ],
+    personas: ["firstjob", "university", "beginner"],
+    rating: 4.9,
+    installCount: 3120,
+    verified: true,
+    createdAt: "2026.09.02",
+    isNew: true,
+  },
 ];
 
 export const SKILL_MAP: Record<string, Skill> = Object.fromEntries(
