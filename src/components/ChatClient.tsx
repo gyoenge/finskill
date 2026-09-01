@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { Agent, ChatMessage, Skill } from "@/lib/types";
 import { Card } from "@/components/ui";
 import { SkillTrace } from "@/components/Trace";
 import { SkillGapPanel } from "@/components/SkillGapPanel";
+import { useStore } from "@/components/StoreProvider";
+import * as ops from "@/lib/state-ops";
+import { SKILLS } from "@/lib/data/skills";
 
 /** 화면 07. Agent Chat (README §12, §13, §19, §27) */
 export function ChatClient({
@@ -14,16 +16,14 @@ export function ChatClient({
   equipped,
   disabled = [],
   initialMessages,
-  llmEnabled,
 }: {
   agent: Agent;
   equipped: Skill[];
   /** 장착됐지만 비활성화된 Skill — 실행되지 않는 이유를 보여주기 위해 함께 표시한다 */
   disabled?: Skill[];
   initialMessages: ChatMessage[];
-  llmEnabled: boolean;
 }) {
-  const router = useRouter();
+  const { update, getState } = useStore();
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -60,10 +60,28 @@ export function ChatClient({
       setMessages((prev) => prev.map((m) => (m.id === draftId ? fn(m) : m)));
 
     try {
+      // 서버는 무상태다. 이번 요청에 필요한 것만 함께 보낸다.
+      // Skill Gap 승인 직후처럼 방금 장착한 Skill 이 있을 수 있으므로,
+      // props 가 아니라 스토어의 최신 상태에서 장착 목록을 다시 계산한다.
+      const cur = getState();
+      const curAgent = cur.agents.find((a) => a.id === agent.id) ?? agent;
+      const curCatalog = [...SKILLS, ...cur.customSkills];
+      const enabledIds = new Set(cur.installed.filter((i) => i.enabled).map((i) => i.skillId));
+      const equippedNow = curAgent.skillIds
+        .filter((id) => enabledIds.has(id))
+        .map((id) => curCatalog.find((c) => c.id === id))
+        .filter((sk): sk is Skill => Boolean(sk));
+
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ agentId: agent.id, message: query }),
+        body: JSON.stringify({
+          agent: curAgent,
+          equipped: equippedNow,
+          customSkills: cur.customSkills,
+          history: messages.slice(-6),
+          message: query,
+        }),
       });
       if (!res.ok || !res.body) {
         throw new Error((await res.json().catch(() => ({}))).error ?? "응답에 실패했습니다.");
@@ -94,13 +112,22 @@ export function ChatClient({
           else if (ev.type === "done") {
             const finalMessage: ChatMessage = ev.message;
             setMessages((prev) => prev.map((m) => (m.id === draftId ? finalMessage : m)));
+            // 대화 기록 저장도 클라이언트가 한다.
+            update((s) => {
+              const withMsgs = ops.appendMessages(s, agent.id, [
+                { id: `msg_${Date.now().toString(36)}_u`, role: "user", content: query, createdAt: new Date().toISOString() },
+                finalMessage,
+              ]);
+              return ev.usedSkillIds?.length
+                ? ops.noteRecentSkills(withMsgs, ev.usedSkillIds)
+                : withMsgs;
+            });
           } else if (ev.type === "error") {
             setError(ev.error);
             setMessages((prev) => prev.filter((m) => m.id !== draftId));
           }
         }
       }
-      router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "응답에 실패했습니다.");
       setMessages((prev) => prev.filter((m) => m.id !== draftId));
@@ -122,9 +149,7 @@ export function ChatClient({
           </div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-[13.5px] font-bold text-ink-900">{agent.name}</p>
-            <p className="truncate text-[11px] text-ink-400">
-              {equipped.length}개 Skill 장착 · {llmEnabled ? agent.model : "Fallback Router"}
-            </p>
+            <p className="truncate text-[11px] text-ink-400">{equipped.length}개 Skill 장착 · {agent.model}</p>
           </div>
           <Link href="/my-skills" className="shrink-0 text-[11.5px] font-semibold text-ink-400 hover:text-brand-700">
             ⚙︎ 설정

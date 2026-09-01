@@ -3,10 +3,15 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import type { Category, FinKit, OnboardingProfile, PersonaProfile } from "@/lib/types";
-import { CATEGORY_LABEL, ONBOARDING_OPTIONS } from "@/lib/data/personas";
+import { CATEGORY_LABEL, ONBOARDING_OPTIONS, PERSONA_MAP } from "@/lib/data/personas";
 import { SKILL_MAP } from "@/lib/data/skills";
 import { Button, Card } from "@/components/ui";
-import { post } from "@/components/actions";
+import { useStore } from "@/components/StoreProvider";
+import { matchPersona, recommendKit } from "@/lib/recommend";
+import * as ops from "@/lib/state-ops";
+
+/** Agent 카드에 표시할 모델 이름 (실제 호출 모델은 서버가 결정한다) */
+const MODEL_LABEL = "claude-opus-5";
 
 /**
  * Flow A: 처음 사용하는 사용자 (README §28)
@@ -14,6 +19,7 @@ import { post } from "@/components/actions";
  */
 export default function OnboardingPage() {
   const router = useRouter();
+  const { state, update } = useStore();
   const [step, setStep] = useState<1 | 2>(1);
   const [pending, start] = useTransition();
   const [error, setError] = useState("");
@@ -39,33 +45,31 @@ export default function OnboardingPage() {
       interests: f.interests.includes(c) ? f.interests.filter((x) => x !== c) : [...f.interests, c],
     }));
 
-  const submitProfile = () =>
-    start(async () => {
-      setError("");
-      try {
-        const r = await post("/api/onboarding", form);
-        setResult({ persona: r.persona, reason: r.reason, kit: r.kit });
-        setStep(2);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "요청에 실패했습니다.");
-      }
-    });
+  // Persona 매칭은 순수 계산이라 서버가 필요 없다 (§9 규칙 기반).
+  const submitProfile = () => {
+    setError("");
+    const { personaId, reason } = matchPersona(form);
+    const kit = recommendKit(personaId);
+    update((s) => ops.setProfile(s, form, personaId));
+    setResult({ persona: PERSONA_MAP[personaId], reason, kit });
+    setStep(2);
+  };
 
   const createAgent = () =>
-    start(async () => {
+    start(() => {
       if (!result) return;
       setError("");
-      try {
-        const { agent } = await post("/api/agents", {
-          name: result.persona.defaultAgentName,
-          persona: result.persona.summary,
-          instructions: result.persona.defaultInstructions,
-          skillIds: result.kit.skillIds,
-        });
-        router.push(`/agents/${agent.id}/chat`);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Agent 생성에 실패했습니다.");
-      }
+      // 새 Agent id 를 즉시 알아야 이동할 수 있으므로, 상태 전이를 먼저 계산한 뒤 반영한다.
+      // (update 의 갱신 함수는 React 가 나중에 실행하므로 그 안에서 꺼낸 값은 여기서 읽을 수 없다.)
+      const { state: next, agent } = ops.createAgent(state, {
+        name: result.persona.defaultAgentName,
+        persona: result.persona.summary,
+        instructions: result.persona.defaultInstructions,
+        model: MODEL_LABEL,
+        skillIds: result.kit.skillIds,
+      });
+      update(() => next);
+      router.push(`/agents/${agent.id}/chat`);
     });
 
   return (

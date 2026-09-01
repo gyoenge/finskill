@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import "./globals.css";
 import { BottomNav, PuzzleMark, SideNav } from "@/components/Nav";
+import { StoreProvider } from "@/components/StoreProvider";
 
 export const metadata: Metadata = {
   title: "FinSkill — 필요한 금융 능력을 연결하다",
@@ -13,6 +14,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ko">
       <body className="min-h-screen font-sans antialiased">
+        <StoreProvider>
         <div className="flex min-h-screen">
           <SideNav />
           <div className="flex min-w-0 flex-1 flex-col">
@@ -31,6 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </div>
         </div>
         <BottomNav />
+        </StoreProvider>
       </body>
     </html>
   );

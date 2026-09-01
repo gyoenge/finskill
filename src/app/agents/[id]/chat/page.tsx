@@ -1,19 +1,28 @@
+"use client";
+
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { allSkills, readState } from "@/lib/store";
-import { llmAvailable } from "@/lib/llm";
+import { useParams } from "next/navigation";
+import { useStore, Loading } from "@/components/StoreProvider";
 import { ChatClient } from "@/components/ChatClient";
 
 /** 화면 07. Agent Chat */
-export const dynamic = "force-dynamic";
-
-export default async function ChatPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const state = readState();
+export default function ChatPage() {
+  const { id } = useParams<{ id: string }>();
+  const { state, ready, catalog } = useStore();
   const agent = state.agents.find((a) => a.id === id);
-  if (!agent) notFound();
 
-  const catalog = allSkills(state);
+  if (!ready) return <Loading />;
+  if (!agent) {
+    return (
+      <div className="py-16 text-center">
+        <p className="text-[15px] font-semibold text-ink-900">존재하지 않는 Agent 입니다.</p>
+        <Link href="/agents" className="mt-2 inline-block text-[13px] font-semibold text-brand-700 hover:underline">
+          ← My Agent 로 돌아가기
+        </Link>
+      </div>
+    );
+  }
+
   const enabled = new Set(state.installed.filter((i) => i.enabled).map((i) => i.skillId));
   const equipped = agent.skillIds
     .filter((sid) => enabled.has(sid))
@@ -37,7 +46,6 @@ export default async function ChatPage({ params }: { params: Promise<{ id: strin
         equipped={equipped}
         disabled={disabled}
         initialMessages={state.chats[agent.id] ?? []}
-        llmEnabled={llmAvailable()}
       />
     </div>
   );

@@ -1,10 +1,10 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import type { SkillGap } from "@/lib/types";
 import { Button } from "@/components/ui";
-import { post } from "@/components/actions";
+import { useStore } from "@/components/StoreProvider";
+import * as ops from "@/lib/state-ops";
 
 /**
  * Skill Gap (README §14, Flow C)
@@ -21,8 +21,7 @@ export function SkillGapPanel({
   lastQuery: string;
   onContinue: (query: string) => void;
 }) {
-  const router = useRouter();
-  const [pending, start] = useTransition();
+  const { update } = useStore();
   const [done, setDone] = useState(false);
 
   if (done) return null;
@@ -48,21 +47,21 @@ export function SkillGapPanel({
           <div className="mt-2.5 flex flex-wrap gap-2">
             <Button
               size="sm"
-              disabled={pending}
-              onClick={() =>
-                start(async () => {
-                  await post("/api/skills", {
-                    action: "install",
-                    skillIds: gap.missing.map((m) => m.skillId),
-                    agentId,
-                  });
-                  setDone(true);
-                  router.refresh();
-                  onContinue(lastQuery);
-                })
-              }
+              onClick={() => {
+                const ids = gap.missing.map((m) => m.skillId);
+                update((s) => {
+                  // 설치(비활성이면 재활성화)한 뒤 이 Agent 에 장착한다.
+                  const installed = ops.installSkills(s, ids);
+                  const agent = installed.agents.find((a) => a.id === agentId);
+                  if (!agent) return installed;
+                  const next = Array.from(new Set([...agent.skillIds, ...ids]));
+                  return ops.equipSkills(installed, agentId, next);
+                });
+                setDone(true);
+                onContinue(lastQuery);
+              }}
             >
-              {pending ? "장착하는 중…" : "추천 Skill 장착하고 계속하기"}
+              추천 Skill 장착하고 계속하기
             </Button>
             <Button variant="ghost" size="sm" onClick={() => setDone(true)}>
               지금은 괜찮아요

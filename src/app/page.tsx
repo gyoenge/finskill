@@ -1,22 +1,28 @@
+"use client";
+
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { allSkills, readState } from "@/lib/store";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { useStore, Loading } from "@/components/StoreProvider";
 import { recommendKit, recommendSkills } from "@/lib/recommend";
 import { PERSONA_MAP } from "@/lib/data/personas";
 import { Card, LinkButton, SectionHeader, Stat } from "@/components/ui";
 import { SkillCard, SkillChip } from "@/components/SkillCard";
 import { SkillDna } from "@/components/SkillDna";
 import { InstallKitButton, ResetDemoButton } from "@/components/actions";
-import { llmAvailable } from "@/lib/llm";
 
 /** 화면 01. Home — 서비스 진입 및 개인화 추천 (README §27) */
-export const dynamic = "force-dynamic";
-
 export default function HomePage() {
-  const state = readState();
-  if (!state.profile || !state.personaId) redirect("/onboarding");
+  const router = useRouter();
+  const { state, ready, catalog } = useStore();
 
-  const catalog = allSkills(state);
+  // Persona 를 아직 설정하지 않았으면 온보딩부터 (Flow A)
+  useEffect(() => {
+    if (ready && (!state.profile || !state.personaId)) router.replace("/onboarding");
+  }, [ready, state.profile, state.personaId, router]);
+
+  if (!ready || !state.profile || !state.personaId) return <Loading />;
+
   const persona = PERSONA_MAP[state.personaId];
   const installedIds = new Set(state.installed.map((i) => i.skillId));
   const installedSkills = catalog.filter((s) => installedIds.has(s.id));
@@ -58,16 +64,6 @@ export default function HomePage() {
           <ResetDemoButton />
         </div>
       </header>
-
-      {!llmAvailable() && (
-        <Card className="border-risk-medium-bg bg-risk-medium-bg px-4 py-3">
-          <p className="text-[12px] leading-relaxed text-risk-medium">
-            <b>LLM 키 미설정</b> — Skill 라우팅·실행·Trace·Gap 은 모두 동작하지만, Agent 의 자연어 요약은 비활성화되어
-            Skill 실행 결과가 그대로 표시됩니다. <code className="rounded bg-white/60 px-1">.env.local</code> 에{" "}
-            <code className="rounded bg-white/60 px-1">ANTHROPIC_API_KEY</code> 를 넣으면 활성화됩니다.
-          </p>
-        </Card>
-      )}
 
       {/* My Agent */}
       <section>

@@ -5,7 +5,8 @@ import { useMemo, useState, useTransition } from "react";
 import type { FinKit, PersonaProfile, Recipe, Skill } from "@/lib/types";
 import { Button, Card } from "@/components/ui";
 import { SkillDna } from "@/components/SkillDna";
-import { post } from "@/components/actions";
+import { useStore } from "@/components/StoreProvider";
+import * as ops from "@/lib/state-ops";
 
 /** 화면 06. Agent Builder (README §11, Flow D) */
 export function AgentBuilder({
@@ -22,6 +23,7 @@ export function AgentBuilder({
   suggestedPersonaId: string | null;
 }) {
   const router = useRouter();
+  const { state, update } = useStore();
   const [pending, start] = useTransition();
   const [error, setError] = useState("");
 
@@ -49,14 +51,18 @@ export function AgentBuilder({
   };
 
   const create = () =>
-    start(async () => {
+    start(() => {
       setError("");
-      try {
-        const { agent } = await post("/api/agents", { name, persona, instructions, skillIds: selected });
-        router.push(`/agents/${agent.id}/chat`);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Agent 생성에 실패했습니다.");
-      }
+      // 새 Agent id 를 즉시 써야 하므로 상태 전이를 먼저 계산한다.
+      const { state: next, agent } = ops.createAgent(state, {
+        name: name.trim(),
+        persona: persona.trim() || "개인 금융 도우미",
+        instructions: instructions.trim() || "사용자의 금융 문제를 쉽게 설명하고 해결을 돕는다.",
+        model: "claude-opus-5",
+        skillIds: selected,
+      });
+      update(() => next);
+      router.push(`/agents/${agent.id}/chat`);
     });
 
   return (

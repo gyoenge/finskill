@@ -1,15 +1,15 @@
+"use client";
+
 import Link from "next/link";
-import { allSkills, readState } from "@/lib/store";
+import { useStore, Loading } from "@/components/StoreProvider";
 import { Card, EmptyState, LinkButton, Stat } from "@/components/ui";
 import { DeleteAgentButton } from "@/components/actions";
 import { SkillDna } from "@/components/SkillDna";
 
 /** My Agent 목록 */
-export const dynamic = "force-dynamic";
-
 export default function AgentsPage() {
-  const state = readState();
-  const catalog = allSkills(state);
+  const { state, ready, catalog } = useStore();
+  if (!ready) return <Loading />;
 
   return (
     <div className="space-y-5">

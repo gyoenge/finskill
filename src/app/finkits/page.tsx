@@ -1,18 +1,19 @@
+"use client";
+
 import Link from "next/link";
-import { allSkills, readState } from "@/lib/store";
+import { useStore, Loading } from "@/components/StoreProvider";
 import { FINKITS, PERSONA_MAP, RECIPES } from "@/lib/data/personas";
 import { Card, SectionHeader } from "@/components/ui";
 import { InstallKitButton } from "@/components/actions";
 import { SkillChip } from "@/components/SkillCard";
 
 /** 화면 05. FinKit (README §8, §27) + Skill Recipe (§15) */
-export const dynamic = "force-dynamic";
-
 export default function FinKitPage() {
-  const state = readState();
-  const catalog = allSkills(state);
+  const { state, ready, catalog } = useStore();
   const installed = new Set(state.installed.map((i) => i.skillId));
   const myPersona = state.personaId;
+
+  if (!ready) return <Loading />;
 
   const kits = [...FINKITS].sort((a, b) => (a.persona === myPersona ? -1 : b.persona === myPersona ? 1 : 0));
 

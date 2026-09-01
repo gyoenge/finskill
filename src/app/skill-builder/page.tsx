@@ -5,11 +5,13 @@ import { useMemo, useState, useTransition } from "react";
 import type { Category, SkillInput, SkillType } from "@/lib/types";
 import { CATEGORY_LABEL, TYPE_LABEL } from "@/lib/data/personas";
 import { Button, Card } from "@/components/ui";
-import { post } from "@/components/actions";
+import { useStore } from "@/components/StoreProvider";
+import * as ops from "@/lib/state-ops";
 
 /** 화면 08. Skill Builder — No-code Custom Skill 제작 (README §21, §22) */
 export default function SkillBuilderPage() {
   const router = useRouter();
+  const { update } = useStore();
   const [pending, start] = useTransition();
   const [error, setError] = useState("");
   const [tested, setTested] = useState(false);
@@ -69,25 +71,27 @@ export default function SkillBuilderPage() {
     set(arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
 
   const publish = () =>
-    start(async () => {
+    start(() => {
       setError("");
-      try {
-        const res = await post("/api/skills/custom", {
-          name,
-          icon,
-          description,
-          category,
-          type,
-          inputs,
-          outputs: outputs.filter(Boolean),
-          dataSource,
-          instruction,
-          personalData,
-        });
-        router.push(`/shop/${res.skill.id}`);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "게시에 실패했습니다.");
+      if (!name.trim() || !description.trim()) {
+        setError("Skill 이름과 설명은 필수입니다.");
+        return;
       }
+      // No-code 입력 → 표준 Skill Manifest 변환 (§22)
+      const skill = ops.buildCustomSkill({
+        name,
+        icon,
+        description,
+        category,
+        type,
+        inputs,
+        outputs: outputs.filter(Boolean),
+        dataSource,
+        instruction,
+        personalData,
+      });
+      update((s) => ops.addCustomSkill(s, skill));
+      router.push(`/shop/${skill.id}`);
     });
 
   return (

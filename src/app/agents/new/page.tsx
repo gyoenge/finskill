@@ -1,13 +1,14 @@
+"use client";
+
 import Link from "next/link";
-import { allSkills, readState } from "@/lib/store";
+import { useStore, Loading } from "@/components/StoreProvider";
 import { FINKITS, PERSONAS, RECIPES } from "@/lib/data/personas";
 import { AgentBuilder } from "@/components/AgentBuilder";
 
 /** 화면 06. Agent Builder */
-export const dynamic = "force-dynamic";
-
 export default function NewAgentPage() {
-  const state = readState();
+  const { state, ready, catalog } = useStore();
+  if (!ready) return <Loading />;
   return (
     <div className="space-y-5">
       <Link href="/agents" className="inline-block text-[12px] font-semibold text-ink-400 hover:text-brand-700">
@@ -20,7 +21,7 @@ export default function NewAgentPage() {
         </p>
       </header>
       <AgentBuilder
-        catalog={allSkills(state)}
+        catalog={catalog}
         personas={PERSONAS}
         kits={FINKITS}
         recipes={RECIPES}

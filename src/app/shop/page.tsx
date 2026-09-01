@@ -1,13 +1,13 @@
-import { allSkills, readState } from "@/lib/store";
+"use client";
+
+import { useStore, Loading } from "@/components/StoreProvider";
 import { ShopClient } from "@/components/ShopClient";
 import { LinkButton } from "@/components/ui";
 
 /** 화면 02. Skill Shop */
-export const dynamic = "force-dynamic";
-
 export default function ShopPage() {
-  const state = readState();
-  const catalog = allSkills(state);
+  const { state, ready, catalog } = useStore();
+  if (!ready) return <Loading />;
   return (
     <div className="space-y-5">
       <header className="flex flex-wrap items-end justify-between gap-3">

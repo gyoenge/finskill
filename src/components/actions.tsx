@@ -1,25 +1,23 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui";
+import { useStore } from "@/components/StoreProvider";
+import * as ops from "@/lib/state-ops";
 
-async function post(url: string, body: unknown, method = "POST") {
-  const res = await fetch(url, {
-    method,
-    headers: { "Content-Type": "application/json" },
-    body: method === "DELETE" ? undefined : JSON.stringify(body),
-  });
-  if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error ?? "요청 실패");
-  return res.json();
-}
+/**
+ * 상태를 바꾸는 UI 조각들.
+ *
+ * 서버는 무상태이므로 여기서 localStorage 를 직접 갱신한다.
+ * 실제 상태 전이는 src/lib/state-ops.ts 의 순수 함수가 수행한다.
+ */
 
 /**
  * Skill Shop / Detail 의 설치 버튼.
  *
  * README 는 "설치"(Shop → My Skills)와 "장착"(My Skills → Agent)을 구분한다(§28 Flow B).
- * 이 버튼은 설치만 하므로 장착이라고 부르지 않는다. Agent 에 장착하는 것은
- * My Skills 의 EquipControl 과 Agent Builder 가 담당한다.
+ * 이 버튼은 설치만 하므로 장착이라고 부르지 않는다.
  */
 export function InstallButton({
   skillId,
@@ -32,8 +30,7 @@ export function InstallButton({
   size?: "sm" | "md" | "lg";
   fullWidth?: boolean;
 }) {
-  const router = useRouter();
-  const [pending, start] = useTransition();
+  const { update } = useStore();
   const [snapped, setSnapped] = useState(false);
 
   if (installed) {
@@ -42,15 +39,9 @@ export function InstallButton({
         variant="secondary"
         size={size}
         className={fullWidth ? "w-full" : ""}
-        disabled={pending}
-        onClick={() =>
-          start(async () => {
-            await post("/api/skills", { action: "uninstall", skillId });
-            router.refresh();
-          })
-        }
+        onClick={() => update((s) => ops.uninstallSkill(s, skillId))}
       >
-        {pending ? "삭제 중…" : "설치됨 · 삭제"}
+        설치됨 · 삭제
       </Button>
     );
   }
@@ -59,57 +50,40 @@ export function InstallButton({
     <Button
       size={size}
       className={`${fullWidth ? "w-full" : ""} ${snapped ? "snap-in" : ""}`}
-      disabled={pending}
-      onClick={() =>
-        start(async () => {
-          await post("/api/skills", { action: "install", skillIds: [skillId] });
-          setSnapped(true);
-          router.refresh();
-        })
-      }
+      onClick={() => {
+        update((s) => ops.installSkills(s, [skillId]));
+        setSnapped(true);
+      }}
     >
-      {pending ? "설치 중…" : "＋ 설치하기"}
+      ＋ 설치하기
     </Button>
   );
 }
 
-export function InstallKitButton({ skillIds, label = "FinKit 한 번에 설치" }: { skillIds: string[]; label?: string }) {
-  const router = useRouter();
-  const [pending, start] = useTransition();
+export function InstallKitButton({
+  skillIds,
+  label = "FinKit 한 번에 설치",
+}: {
+  skillIds: string[];
+  label?: string;
+}) {
+  const { update } = useStore();
   return (
-    <Button
-      size="md"
-      disabled={pending}
-      onClick={() =>
-        start(async () => {
-          await post("/api/skills", { action: "install", skillIds });
-          router.refresh();
-        })
-      }
-    >
-      {pending ? "설치 중…" : `🧩 ${label} (${skillIds.length})`}
+    <Button size="md" onClick={() => update((s) => ops.installSkills(s, skillIds))}>
+      🧩 {label} ({skillIds.length})
     </Button>
   );
 }
 
 export function ToggleSkill({ skillId, enabled }: { skillId: string; enabled: boolean }) {
-  const router = useRouter();
-  const [pending, start] = useTransition();
+  const { update } = useStore();
   return (
     <button
       role="switch"
       aria-checked={enabled}
       aria-label={enabled ? "Skill 비활성화" : "Skill 활성화"}
-      disabled={pending}
-      onClick={() =>
-        start(async () => {
-          await post("/api/skills", { action: "toggle", skillId, enabled: !enabled });
-          router.refresh();
-        })
-      }
-      className={`relative h-6 w-11 rounded-full transition ${enabled ? "bg-brand-500" : "bg-line"} ${
-        pending ? "opacity-50" : ""
-      }`}
+      onClick={() => update((s) => ops.toggleSkill(s, skillId, !enabled))}
+      className={`relative h-6 w-11 rounded-full transition ${enabled ? "bg-brand-500" : "bg-line"}`}
     >
       <span
         className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-all ${
@@ -121,64 +95,36 @@ export function ToggleSkill({ skillId, enabled }: { skillId: string; enabled: bo
 }
 
 export function RemoveSkillButton({ skillId }: { skillId: string }) {
-  const router = useRouter();
-  const [pending, start] = useTransition();
+  const { update } = useStore();
   return (
-    <Button
-      variant="ghost"
-      size="sm"
-      disabled={pending}
-      onClick={() =>
-        start(async () => {
-          await post("/api/skills", { action: "uninstall", skillId });
-          router.refresh();
-        })
-      }
-    >
+    <Button variant="ghost" size="sm" onClick={() => update((s) => ops.uninstallSkill(s, skillId))}>
       삭제
     </Button>
   );
 }
 
 export function DeleteAgentButton({ agentId }: { agentId: string }) {
-  const router = useRouter();
-  const [pending, start] = useTransition();
+  const { update } = useStore();
   return (
-    <Button
-      variant="ghost"
-      size="sm"
-      disabled={pending}
-      onClick={() =>
-        start(async () => {
-          await post(`/api/agents/${agentId}`, {}, "DELETE");
-          router.refresh();
-        })
-      }
-    >
-      {pending ? "삭제 중…" : "삭제"}
+    <Button variant="ghost" size="sm" onClick={() => update((s) => ops.deleteAgent(s, agentId))}>
+      삭제
     </Button>
   );
 }
 
 export function ResetDemoButton() {
   const router = useRouter();
-  const [pending, start] = useTransition();
+  const { reset } = useStore();
   return (
     <Button
       variant="ghost"
       size="sm"
-      disabled={pending}
-      onClick={() =>
-        start(async () => {
-          await post("/api/state", {}, "DELETE");
-          router.refresh();
-          router.push("/onboarding");
-        })
-      }
+      onClick={() => {
+        reset();
+        router.push("/onboarding");
+      }}
     >
-      {pending ? "초기화 중…" : "데모 초기화"}
+      데모 초기화
     </Button>
   );
 }
-
-export { post };

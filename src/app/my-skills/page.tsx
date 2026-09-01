@@ -1,5 +1,7 @@
+"use client";
+
 import Link from "next/link";
-import { allSkills, readState } from "@/lib/store";
+import { useStore, Loading } from "@/components/StoreProvider";
 import { SKILL_MAP } from "@/lib/data/skills";
 import { Card, EmptyState, LinkButton, RiskBadge, SectionHeader, VerifiedBadge } from "@/components/ui";
 import { RemoveSkillButton, ToggleSkill } from "@/components/actions";
@@ -7,11 +9,8 @@ import { EquipControl } from "@/components/EquipControl";
 import { SkillDna } from "@/components/SkillDna";
 
 /** 화면 04. My Skills (README §10, §27) */
-export const dynamic = "force-dynamic";
-
 export default function MySkillsPage() {
-  const state = readState();
-  const catalog = allSkills(state);
+  const { state, ready, catalog } = useStore();
   const rows = state.installed
     .map((i) => ({ install: i, skill: catalog.find((c) => c.id === i.skillId) }))
     .filter((r): r is { install: (typeof state.installed)[number]; skill: NonNullable<(typeof catalog)[number]> } =>
@@ -19,6 +18,8 @@ export default function MySkillsPage() {
     );
 
   const enabledSkills = rows.filter((r) => r.install.enabled).map((r) => r.skill);
+
+  if (!ready) return <Loading />;
 
   return (
     <div className="space-y-6">

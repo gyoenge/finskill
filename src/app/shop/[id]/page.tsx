@@ -1,6 +1,8 @@
+"use client";
+
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { allSkills, readState } from "@/lib/store";
+import { useParams } from "next/navigation";
+import { useStore, Loading } from "@/components/StoreProvider";
 import { CATEGORY_LABEL, TYPE_LABEL, TYPE_TO_AXIS } from "@/lib/data/personas";
 import { Card, CategoryChip, RiskBadge, SectionHeader, TypeChip, VerifiedBadge } from "@/components/ui";
 import { SkillPassport } from "@/components/Passport";
@@ -8,14 +10,22 @@ import { InstallButton } from "@/components/actions";
 import { SkillCard } from "@/components/SkillCard";
 
 /** 화면 03. Skill Detail + 화면 09. Skill Passport (README §27) */
-export const dynamic = "force-dynamic";
-
-export default async function SkillDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const state = readState();
-  const catalog = allSkills(state);
+export default function SkillDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  const { state, ready, catalog } = useStore();
   const skill = catalog.find((s) => s.id === id);
-  if (!skill) notFound();
+
+  if (!ready) return <Loading />;
+  if (!skill) {
+    return (
+      <div className="py-16 text-center">
+        <p className="text-[15px] font-semibold text-ink-900">존재하지 않는 Skill 입니다.</p>
+        <Link href="/shop" className="mt-2 inline-block text-[13px] font-semibold text-brand-700 hover:underline">
+          ← Skill Shop 으로 돌아가기
+        </Link>
+      </div>
+    );
+  }
 
   const installed = state.installed.some((i) => i.skillId === skill.id);
   const equippedAgents = state.agents.filter((a) => a.skillIds.includes(skill.id));

@@ -56,13 +56,45 @@ curl -X DELETE http://localhost:3000/api/state
 | Frontend | Next.js 16 (App Router) + React 19 | |
 | UI | Tailwind CSS v4 | 디자인 시스템은 `src/app/globals.css` 의 `@theme` 토큰 |
 | Backend | Next.js Route Handlers | README §32 의 "FastAPI 또는 Next.js API" 중 후자 |
-| Data (사용자 상태) | 파일 기반 JSON 스토어 | Supabase 로 교체 가능하도록 `src/lib/store.ts` 한 곳에 격리 |
+| Data (사용자 상태) | 브라우저 localStorage | Vercel 서버리스는 FS 가 읽기 전용이라 서버에 상태를 둘 수 없다. 상태 전이는 `src/lib/state-ops.ts` 순수 함수, 저장은 `src/components/StoreProvider.tsx` |
 | Data (금융 데이터) | 목업 시드 (`src/lib/data/seed`) | 실제 기관 공고 필드 구조를 따름 |
 | LLM | Anthropic Claude (`claude-opus-5`) | 키 없으면 자동 Fallback. `FINSKILL_MODEL` 로 변경 가능 |
 
-**사용자 상태 저장 위치**: `node_modules/.cache/finskill/store.json`
-(`next dev` 의 파일 워처가 프로젝트 루트를 감시하기 때문에, 그 안에 두면 상태를 저장할 때마다
-Fast Refresh 가 돌아 채팅 입력 등 클라이언트 상태가 초기화됩니다. `FINSKILL_STORE_PATH` 로 변경 가능.)
+### 상태 저장 구조
+
+사용자 상태(설치한 Skill · Agent · 대화기록)는 **브라우저 localStorage** 에 있고 **서버는 무상태**입니다.
+남은 서버 엔드포인트는 `/api/chat` 하나뿐이며, 클라이언트가 이번 요청에 필요한 것
+(Agent 설정, 장착 Skill, 최근 대화 6턴)만 함께 보냅니다.
+
+```
+브라우저 localStorage ── StoreProvider (React Context)
+                              │
+                              ├─ state-ops.ts   상태 전이 (순수 함수)
+                              └─ /api/chat      무상태 · SSE 스트리밍
+```
+
+- 방문자마다 자신의 Skill·Agent 를 갖습니다. 서버에 개인정보가 저장되지 않습니다.
+- 브라우저나 기기를 바꾸면 상태가 이어지지 않습니다.
+- Supabase 로 옮기려면 `state-ops.ts` 는 그대로 두고 `StoreProvider.tsx` 만 교체하면 됩니다.
+
+### Vercel 배포
+
+```bash
+npx vercel login      # 최초 1회, 직접 실행 필요
+npx vercel --prod
+```
+
+Vercel 프로젝트에 아래 환경변수를 설정해야 Agent 답변 요약이 동작합니다.
+없으면 Skill 라우팅·실행·Trace·Gap 은 그대로 동작하고 요약만 Fallback 으로 대체됩니다.
+
+| 변수 | 필수 | 설명 |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | 권장 | 없으면 Fallback Router 로 동작 |
+| `ANTHROPIC_WORKSPACE_ID` | 조건부 | identity-linked 키를 쓸 때만 |
+| `FINSKILL_MODEL` | 선택 | 기본 `claude-opus-5` |
+
+> **주의**: 공개 URL 에는 인증이 없습니다. URL 을 아는 누구나 `/api/chat` 을 호출해
+> API 크레딧을 소모할 수 있습니다. 공개 데모로 쓴다면 사용량 한도를 걸어두세요.
 
 ---
 
@@ -81,7 +113,7 @@ src/
 │   ├── agents/[id]/chat/           07 Agent Chat
 │   ├── skill-builder/              08 Skill Builder
 │   └── api/                        Route Handlers
-├── components/                     UI · 도메인 컴포넌트
+├── components/                     UI · 도메인 컴포넌트 (StoreProvider 포함)
 └── lib/
     ├── types.ts                    Skill Manifest 등 도메인 타입 (§22, §26)
     ├── store.ts                    사용자 상태 저장소
@@ -250,8 +282,9 @@ Custom Skill 생성→장착→실행, 404 처리, 채팅 Enter 전송.
 2. **전체 응답 완료까지는 여전히 10~20초** — 스트리밍으로 체감 지연은 해결했지만(첫 콘텐츠 2.7초),
    전체 완료 시간 자체는 그대로입니다. 더 줄이려면 effort 하향, 또는 라우팅을 규칙 기반으로 고정하고
    LLM 은 설명에만 사용하는 방법이 있습니다.
-3. **인증·다중 사용자 없음** — 단일 데모 사용자 파일 스토어입니다. Supabase Auth + Postgres 로 이전 시
-   `src/lib/store.ts` 의 함수 시그니처를 유지한 채 내부만 교체하면 됩니다.
+3. **인증·다중 기기 동기화 없음** — 상태가 브라우저 localStorage 에만 있어, 기기나 브라우저를
+   바꾸면 이어지지 않습니다. Supabase Auth + Postgres 로 이전 시 `state-ops.ts` 는 그대로 두고
+   `StoreProvider.tsx` 만 교체하면 됩니다.
 4. **RAG 는 키워드 검색** — pgvector 임베딩 대신 별칭 기반 스코어링입니다. (§32 의 pgvector 는 미적용)
 5. **미구현 (README에 정의되어 있으나 MVP 필수 목록 밖)** — Skill Fusion(§18), Export/Adapter Layer(§24·§25),
    Recipe 실행 엔진(현재 Recipe 는 정의·설치·Agent Builder 선택까지만).
