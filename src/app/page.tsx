@@ -144,7 +144,7 @@ export default function HomePage() {
                 .join(" · ")}
             </p>
           </div>
-          <InstallKitButton skillIds={kitMissing} label="부족한 Skill 한 번에 장착" />
+          <InstallKitButton skillIds={kitMissing} label="부족한 Skill 한 번에 설치" />
         </Card>
       )}
 

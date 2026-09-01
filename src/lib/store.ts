@@ -69,10 +69,19 @@ export function skillById(id: string, state: UserState = readState()): Skill | u
   return allSkills(state).find((s) => s.id === id);
 }
 
+/**
+ * Skill 설치.
+ *
+ * 이미 설치되어 있지만 비활성화된 Skill 은 다시 활성화한다.
+ * 그렇지 않으면 Skill Gap(§14) 이 막다른 길이 된다 — 비활성 Skill 은 라우팅에서
+ * 제외되어 계속 "부족한 Skill" 로 잡히는데, 설치 버튼은 이미 설치되어 있다는
+ * 이유로 아무 일도 하지 않아 사용자가 같은 안내를 무한히 반복해서 보게 된다.
+ */
 export function installSkills(ids: string[]): UserState {
   return updateState((s) => {
     const now = new Date().toISOString();
     const existing = new Set(s.installed.map((i) => i.skillId));
+    const requested = new Set(ids);
     const catalog = allSkills(s);
     const added: InstalledSkill[] = ids
       .filter((id) => !existing.has(id))
@@ -82,7 +91,11 @@ export function installSkills(ids: string[]): UserState {
         enabled: true,
         installedAt: now,
       }));
-    return { ...s, installed: [...s.installed, ...added] };
+    // 이미 설치된 것 중 비활성 상태인 Skill 은 다시 켠다.
+    const reEnabled = s.installed.map((i) =>
+      requested.has(i.skillId) && !i.enabled ? { ...i, enabled: true } : i,
+    );
+    return { ...s, installed: [...reEnabled, ...added] };
   });
 }
 

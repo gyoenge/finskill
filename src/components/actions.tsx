@@ -14,7 +14,13 @@ async function post(url: string, body: unknown, method = "POST") {
   return res.json();
 }
 
-/** Skill 설치 = Snap (§29 UI Metaphor) */
+/**
+ * Skill Shop / Detail 의 설치 버튼.
+ *
+ * README 는 "설치"(Shop → My Skills)와 "장착"(My Skills → Agent)을 구분한다(§28 Flow B).
+ * 이 버튼은 설치만 하므로 장착이라고 부르지 않는다. Agent 에 장착하는 것은
+ * My Skills 의 EquipControl 과 Agent Builder 가 담당한다.
+ */
 export function InstallButton({
   skillId,
   installed,
@@ -44,7 +50,7 @@ export function InstallButton({
           })
         }
       >
-        {pending ? "해제 중…" : "장착됨 · 제거"}
+        {pending ? "삭제 중…" : "설치됨 · 삭제"}
       </Button>
     );
   }
@@ -62,7 +68,7 @@ export function InstallButton({
         })
       }
     >
-      {pending ? "장착 중…" : "＋ 장착하기"}
+      {pending ? "설치 중…" : "＋ 설치하기"}
     </Button>
   );
 }

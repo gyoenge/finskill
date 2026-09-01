@@ -12,11 +12,14 @@ import { SkillGapPanel } from "@/components/SkillGapPanel";
 export function ChatClient({
   agent,
   equipped,
+  disabled = [],
   initialMessages,
   llmEnabled,
 }: {
   agent: Agent;
   equipped: Skill[];
+  /** 장착됐지만 비활성화된 Skill — 실행되지 않는 이유를 보여주기 위해 함께 표시한다 */
+  disabled?: Skill[];
   initialMessages: ChatMessage[];
   llmEnabled: boolean;
 }) {
@@ -260,6 +263,27 @@ export function ChatClient({
                 </li>
               ))}
             </ul>
+          )}
+
+          {disabled.length > 0 && (
+            <div className="mt-3 border-t border-line pt-3">
+              <p className="text-[11px] font-bold text-risk-medium">꺼져 있어 실행되지 않는 Skill</p>
+              <ul className="mt-1.5 space-y-1">
+                {disabled.map((s) => (
+                  <li key={s.id} className="flex items-center gap-2 rounded-lg bg-risk-medium-bg px-2 py-1.5">
+                    <span className="text-[13px] grayscale">{s.icon}</span>
+                    <span className="min-w-0 flex-1 truncate text-[11.5px] font-medium text-ink-500">{s.name}</span>
+                    <span className="shrink-0 rounded bg-white/70 px-1 text-[10px] font-bold text-risk-medium">OFF</span>
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/my-skills"
+                className="mt-1.5 inline-block text-[11px] font-semibold text-brand-700 hover:underline"
+              >
+                My Skills 에서 다시 켜기 →
+              </Link>
+            </div>
           )}
         </Card>
 

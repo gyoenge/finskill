@@ -21,7 +21,7 @@ export default function FinKitPage() {
       <header>
         <h1 className="text-[22px] font-extrabold tracking-tight text-ink-900">FinKit</h1>
         <p className="mt-1 text-[13px] text-ink-500">
-          Persona 별로 미리 구성된 Skill 묶음입니다. 하나씩 찾을 필요 없이 한 번에 장착하세요.
+          Persona 별로 미리 구성된 Skill 묶음입니다. 하나씩 찾을 필요 없이 한 번에 설치하세요.
         </p>
       </header>
 

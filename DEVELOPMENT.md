@@ -214,6 +214,18 @@ user → trace → gap? → delta* → done
 | 첫 답변 토큰 | 11.5초 | **4.2초** |
 | 전체 완료 | 11.5초 | 11.6초 |
 
+### 전 기능 QA 스윕에서 고친 것
+
+| 문제 | 증상 | 수정 |
+|---|---|---|
+| Skill Gap 막다른 길 | 설치·장착됐지만 **비활성화**된 Skill 은 라우팅에서 빠져 계속 "부족한 Skill" 로 잡히는데, 설치 버튼은 이미 설치돼 있다는 이유로 아무 일도 하지 않아 같은 안내가 무한 반복 | `installSkills()` 가 비활성 Skill 을 다시 활성화 |
+| 꺼진 Skill 이 소리 없이 사라짐 | 비활성화한 Skill 이 Agent Chat 사이드바에서 아예 안 보여, 왜 안 쓰이는지 알 수 없음 | 사이드바에 OFF 섹션으로 표시 + My Skills 링크 |
+| 설치/장착 용어 혼용 | Skill Shop 버튼이 "장착하기" 라고 하지만 실제로는 설치만 함. README 는 설치(Shop→My Skills)와 장착(My Skills→Agent)을 구분(§28 Flow B) | 버튼을 "설치하기 / 설치됨·삭제" 로 정정, Skill Detail 에 "아직 Agent 에 장착되지 않았습니다" 안내 추가 |
+
+정상 동작을 확인한 항목: Persona 매칭 4종, 전 화면 렌더링(9개), Skill Shop 필터·검색·정렬,
+Skill 0개 Agent 대화, Skill 제거 시 Agent 연동 해제, Agent 삭제 시 대화기록 정리,
+Custom Skill 생성→장착→실행, 404 처리, 채팅 Enter 전송.
+
 ### LLM 응답 품질 (claude-opus-5, 9개 케이스 전수)
 
 평가 하네스는 각 질문마다 라우팅된 Skill · Skill 원본 결과 · 최종 답변을 나란히 출력해 대조합니다.

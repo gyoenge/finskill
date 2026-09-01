@@ -49,11 +49,19 @@ export default async function SkillDetailPage({ params }: { params: Promise<{ id
         </div>
         <div className="w-full sm:w-40">
           <InstallButton skillId={skill.id} installed={installed} size="md" fullWidth />
-          {equippedAgents.length > 0 && (
+          {equippedAgents.length > 0 ? (
             <p className="mt-2 text-center text-[11px] text-ink-400">
               {equippedAgents.map((a) => a.name).join(", ")} 에 장착됨
             </p>
-          )}
+          ) : installed ? (
+            // 설치만으로는 Agent 가 쓰지 못한다. 다음 단계를 명시한다 (§28 Flow B).
+            <p className="mt-2 text-center text-[11px] text-risk-medium">
+              아직 Agent 에 장착되지 않았습니다.{" "}
+              <Link href="/my-skills" className="font-semibold underline underline-offset-2">
+                My Skills 에서 장착
+              </Link>
+            </p>
+          ) : null}
         </div>
       </header>
 
