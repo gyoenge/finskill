@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Icon } from "@/components/Icon";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useStore, Loading } from "@/components/StoreProvider";
@@ -86,25 +87,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 왜 범용 챗봇이 아니라 FinSkill 인가 — 심사에서 가장 먼저 나올 질문에 대한 답 */}
-      <section className="grid gap-3 sm:grid-cols-3">
-        <WhyCard
-          icon="🔒"
-          title="검증된 데이터"
-          desc="공공 API·공식 문서에서만 답합니다. 모델이 기억으로 지어내지 않습니다."
-        />
-        <WhyCard
-          icon="🔍"
-          title="근거를 보여줍니다"
-          desc="어떤 스킬이 어떤 데이터로 답했는지 추적하고, 답변의 숫자를 결과와 대조합니다."
-        />
-        <WhyCard
-          icon="🧩"
-          title="능력이 자랍니다"
-          desc="못 하는 요청은 무엇이 부족한지 알려주고, 그 능력을 장착해 이어서 처리합니다."
-        />
-      </section>
-
       {/* My Agent */}
       <section>
         <SectionHeader
@@ -126,7 +108,9 @@ export default function HomePage() {
           <div className="grid gap-3 md:grid-cols-[1.4fr_1fr]">
             <Card className="p-4">
               <div className="flex items-start gap-3">
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-[22px]">🤖</span>
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
+                  <Icon name="bot" size={24} />
+                </span>
                 <div className="min-w-0">
                   <p className="text-[15px] font-bold text-ink-900">{agent.name}</p>
                   <p className="text-[12px] text-ink-500">{agent.persona}</p>
@@ -142,9 +126,10 @@ export default function HomePage() {
                 {agentSkills.slice(0, 6).map((s) => (
                   <span
                     key={s.id}
-                    className="inline-flex items-center gap-1 rounded-lg bg-canvas px-2 py-1 text-[11px] font-medium text-ink-700"
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-canvas px-2 py-1 text-[11px] font-medium text-ink-700"
                   >
-                    {s.icon} {s.name}
+                    <Icon name={s.icon as never} size={13} />
+                    {s.name}
                   </span>
                 ))}
                 {agentSkills.length === 0 && (
@@ -169,7 +154,7 @@ export default function HomePage() {
         <Card className="flex flex-wrap items-center justify-between gap-3 border-accent-200 bg-accent-50 p-4">
           <div>
             <p className="text-[13px] font-bold text-accent-700">
-              🧩 {persona.name}에게 자주 필요한 Skill {kitMissing.length}개가 아직 없습니다.
+              {persona.name}에게 자주 필요한 Skill {kitMissing.length}개가 아직 없습니다.
             </p>
             <p className="mt-0.5 text-[12px] text-accent-700/80">
               {kitMissing
@@ -261,13 +246,3 @@ export default function HomePage() {
   );
 }
 
-/** 홈 상단의 3가지 방어 논리 카드 */
-function WhyCard({ icon, title, desc }: { icon: string; title: string; desc: string }) {
-  return (
-    <Card className="p-4">
-      <span className="text-[18px]">{icon}</span>
-      <p className="mt-1.5 text-[13px] font-bold text-ink-900">{title}</p>
-      <p className="mt-1 text-[11.5px] leading-relaxed text-ink-500">{desc}</p>
-    </Card>
-  );
-}

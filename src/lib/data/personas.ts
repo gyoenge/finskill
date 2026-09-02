@@ -5,7 +5,7 @@ export const PERSONAS: PersonaProfile[] = [
   {
     id: "university",
     name: "대학생",
-    icon: "🎓",
+    icon: "graduation",
     summary: "등록금·장학금·주거비를 동시에 고민하는 재학생",
     match: {
       status: ["대학생", "대학원생"],
@@ -18,7 +18,7 @@ export const PERSONAS: PersonaProfile[] = [
   {
     id: "firstjob",
     name: "사회초년생",
-    icon: "💼",
+    icon: "briefcase",
     summary: "첫 월급으로 자산 형성을 시작하는 직장인",
     match: {
       status: ["직장인", "사회초년생", "취업준비생"],
@@ -31,7 +31,7 @@ export const PERSONAS: PersonaProfile[] = [
   {
     id: "living-alone",
     name: "자취생",
-    icon: "🏠",
+    icon: "home",
     summary: "주거비 부담이 가장 큰 1인 가구",
     match: {
       housing: ["자취", "원룸", "고시원", "기숙사"],
@@ -44,7 +44,7 @@ export const PERSONAS: PersonaProfile[] = [
   {
     id: "beginner",
     name: "금융초보",
-    icon: "🌱",
+    icon: "sprout",
     summary: "금융 용어부터 차근차근 익히고 싶은 입문자",
     match: {
       knowledge: ["처음이에요", "기초"],
@@ -66,7 +66,7 @@ export const FINKITS: FinKit[] = [
     id: "kit-university",
     name: "대학생 FinKit",
     persona: "university",
-    icon: "🎓",
+    icon: "graduation",
     tagline: "등록금·장학금·주거를 한 번에",
     reason: "재학 중 반복되는 장학금 신청, 등록금 마련, 청년주택 탐색을 하나의 Agent 로 처리할 수 있습니다.",
     skillIds: [
@@ -83,7 +83,7 @@ export const FINKITS: FinKit[] = [
     id: "kit-firstjob",
     name: "사회초년생 FinKit",
     persona: "firstjob",
-    icon: "💼",
+    icon: "briefcase",
     tagline: "첫 월급부터 자산 형성까지",
     reason: "급여 관리·비상금·예적금·신용관리처럼 사회 진입 직후 1년에 필요한 Skill 을 묶었습니다.",
     skillIds: [
@@ -99,7 +99,7 @@ export const FINKITS: FinKit[] = [
     id: "kit-living-alone",
     name: "자취생 FinKit",
     persona: "living-alone",
-    icon: "🏠",
+    icon: "home",
     tagline: "주거비를 줄이는 가장 빠른 조합",
     reason: "1인 가구 지출의 40% 이상을 차지하는 주거비를 공공주택·주거정책·소비분석으로 함께 공략합니다.",
     skillIds: [
@@ -114,7 +114,7 @@ export const FINKITS: FinKit[] = [
     id: "kit-beginner",
     name: "금융초보 FinKit",
     persona: "beginner",
-    icon: "🌱",
+    icon: "sprout",
     tagline: "용어부터 사기 예방까지 기본기",
     reason: "금융 의사결정을 시작하기 전에 필요한 이해·계산·보호 능력을 최소 구성으로 담았습니다.",
     skillIds: [

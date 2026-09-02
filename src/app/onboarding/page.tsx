@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Icon } from "@/components/Icon";
 import { useState, useTransition } from "react";
 import type { Category, FinKit, OnboardingProfile, PersonaProfile } from "@/lib/types";
 import { CATEGORY_LABEL, ONBOARDING_OPTIONS, PERSONA_MAP } from "@/lib/data/personas";
@@ -178,7 +179,7 @@ export default function OnboardingPage() {
         <div className="space-y-4">
           <Card className="p-5">
             <div className="flex items-start gap-3">
-              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-[26px]">{result.kit.icon}</span>
+              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-brand-600"><Icon name={result.kit.icon as never} size={28} /></span>
               <div>
                 <p className="text-[16px] font-bold text-ink-900">{result.kit.name}</p>
                 <p className="text-[12.5px] text-ink-500">{result.kit.tagline}</p>
@@ -193,7 +194,7 @@ export default function OnboardingPage() {
                 if (!s) return null;
                 return (
                   <li key={id} className="snap-in flex items-center gap-2.5 rounded-xl border border-line px-3 py-2">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand-50 text-[15px]">{s.icon}</span>
+                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand-50 text-brand-600"><Icon name={s.icon as never} size={16} /></span>
                     <div className="min-w-0">
                       <p className="truncate text-[12.5px] font-semibold text-ink-900">{s.name}</p>
                       <p className="truncate text-[11px] text-ink-400">{s.tagline}</p>
@@ -206,7 +207,7 @@ export default function OnboardingPage() {
 
           <Card className="p-5">
             <p className="text-[13px] font-bold text-ink-900">자동으로 만들어질 Agent</p>
-            <p className="mt-1.5 text-[13px] text-brand-700">🤖 {result.persona.defaultAgentName}</p>
+            <p className="mt-1.5 text-[13px] text-brand-700">{result.persona.defaultAgentName}</p>
             <p className="mt-1 text-[12px] leading-relaxed text-ink-500">{result.persona.defaultInstructions}</p>
           </Card>
 
@@ -217,7 +218,7 @@ export default function OnboardingPage() {
               다시 설정
             </Button>
             <Button size="lg" className="flex-1" onClick={createAgent} disabled={pending}>
-              {pending ? "Agent 생성 중…" : "🧩 Skill 장착하고 Agent 시작하기"}
+              {pending ? "Agent 생성 중…" : "Skill 장착하고 에이전트 시작하기"}
             </Button>
           </div>
         </div>

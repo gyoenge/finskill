@@ -6,6 +6,7 @@ import type { Category, SkillInput, SkillType } from "@/lib/types";
 import { CATEGORY_LABEL, TYPE_LABEL } from "@/lib/data/personas";
 import { Button, Card } from "@/components/ui";
 import { useStore } from "@/components/StoreProvider";
+import { Icon, PICKABLE_ICONS, type IconName } from "@/components/Icon";
 import * as ops from "@/lib/state-ops";
 
 /** 화면 08. Skill Builder — No-code Custom Skill 제작 (README §21, §22) */
@@ -17,7 +18,7 @@ export default function SkillBuilderPage() {
   const [tested, setTested] = useState(false);
 
   const [name, setName] = useState("월 예산 분석");
-  const [icon, setIcon] = useState("🧮");
+  const [icon, setIcon] = useState<IconName>("calculator");
   const [description, setDescription] = useState(
     "월 수입과 고정지출을 입력하면 저축률과 가장 큰 지출 항목, 개선 가능 금액을 알려줍니다.",
   );
@@ -107,18 +108,31 @@ export default function SkillBuilderPage() {
         <div className="space-y-4">
           <Card className="space-y-3.5 p-4">
             <Field label="Skill Name">
-              <div className="flex gap-2">
-                <input
-                  value={icon}
-                  onChange={(e) => setIcon(e.target.value.slice(0, 2))}
-                  className="w-14 rounded-xl border border-line bg-surface px-3 py-2.5 text-center text-[18px] outline-none focus:border-brand-400"
-                />
-                <input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="예: 월 예산 분석"
-                  className="flex-1 rounded-xl border border-line bg-surface px-3 py-2.5 text-[13.5px] outline-none focus:border-brand-400"
-                />
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="예: 월 예산 분석"
+                className="w-full rounded-xl border border-line bg-surface px-3 py-2.5 text-[13.5px] outline-none focus:border-brand-400"
+              />
+            </Field>
+
+            <Field label="아이콘">
+              <div className="flex flex-wrap gap-1.5">
+                {PICKABLE_ICONS.map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    aria-label={n}
+                    onClick={() => setIcon(n)}
+                    className={`flex h-9 w-9 items-center justify-center rounded-xl border transition ${
+                      icon === n
+                        ? "border-brand-500 bg-brand-50 text-brand-600"
+                        : "border-line bg-surface text-ink-400 hover:border-brand-300"
+                    }`}
+                  >
+                    <Icon name={n} size={17} />
+                  </button>
+                ))}
               </div>
             </Field>
 

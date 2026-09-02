@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Icon } from "@/components/Icon";
 import { useMemo, useState, useTransition } from "react";
 import type { FinKit, PersonaProfile, Recipe, Skill } from "@/lib/types";
 import { Button, Card } from "@/components/ui";
@@ -89,7 +90,7 @@ export function AgentBuilder({
                     : "border-line bg-surface text-ink-500 hover:border-brand-300"
                 }`}
               >
-                {p.icon} {p.name}
+                {p.name}
               </button>
             ))}
           </div>
@@ -109,7 +110,7 @@ export function AgentBuilder({
                 onClick={() => setSelected((prev) => Array.from(new Set([...prev, ...k.skillIds])))}
                 className="rounded-lg border border-line bg-surface px-2.5 py-1 text-[11.5px] font-semibold text-ink-500 transition hover:border-brand-300 hover:text-brand-700"
               >
-                📦 {k.name} 추가
+                {k.name} 추가
               </button>
             ))}
             {recipes.map((r) => (
@@ -120,7 +121,7 @@ export function AgentBuilder({
                 }
                 className="rounded-lg border border-line bg-surface px-2.5 py-1 text-[11.5px] font-semibold text-ink-500 transition hover:border-accent-400 hover:text-accent-700"
               >
-                🧪 {r.name}
+                {r.name}
               </button>
             ))}
             {selected.length > 0 && (
@@ -145,11 +146,11 @@ export function AgentBuilder({
                     }`}
                   >
                     <span
-                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-[15px] ${
+                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-brand-600 ${
                         on ? "bg-white" : "bg-canvas"
                       }`}
                     >
-                      {s.icon}
+                      <Icon name={s.icon as never} size={16} />
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-[12.5px] font-semibold text-ink-900">{s.name}</span>
@@ -190,7 +191,7 @@ export function AgentBuilder({
         <Card className="p-4">
           <p className="text-[11px] font-bold tracking-wider text-ink-400">AGENT PREVIEW</p>
           <div className="mt-2.5 flex items-start gap-3">
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-[22px]">🤖</span>
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-brand-600"><Icon name="bot" size={24} /></span>
             <div className="min-w-0">
               <p className="truncate text-[15px] font-bold text-ink-900">{name || "이름 없는 Agent"}</p>
               <p className="text-[12px] text-ink-500">{persona || "Persona 미설정"}</p>
@@ -202,7 +203,7 @@ export function AgentBuilder({
           <div className="mt-3 flex flex-wrap gap-1">
             {selectedSkills.map((s) => (
               <span key={s.id} className="snap-in rounded-lg bg-canvas px-2 py-1 text-[11px] font-medium text-ink-700">
-                {s.icon} {s.name}
+                {s.name}
               </span>
             ))}
             {selectedSkills.length === 0 && <span className="text-[11.5px] text-ink-300">선택된 Skill 이 없습니다.</span>}

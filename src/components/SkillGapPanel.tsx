@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Icon } from "@/components/Icon";
 import type { SkillGap } from "@/lib/types";
 import { Button } from "@/components/ui";
 import { useStore } from "@/components/StoreProvider";
@@ -29,13 +30,13 @@ export function SkillGapPanel({
   return (
     <div className="snap-in mt-2.5 rounded-2xl border border-accent-200 bg-accent-50 p-3.5">
       <div className="flex items-start gap-2">
-        <span className="text-[16px]">🧩</span>
+        <span className="mt-0.5 text-accent-600"><Icon name="puzzle" size={17} /></span>
         <div className="min-w-0 flex-1">
           <p className="text-[12.5px] font-bold text-accent-700">{gap.message}</p>
           <ul className="mt-2 space-y-1.5">
             {gap.missing.map((m) => (
               <li key={m.skillId} className="flex items-start gap-2 rounded-xl bg-surface px-2.5 py-2">
-                <span className="text-[15px]">{m.icon}</span>
+                <span className="mt-0.5 text-accent-600"><Icon name={m.icon as never} size={16} /></span>
                 <div className="min-w-0">
                   <p className="text-[12.5px] font-semibold text-ink-900">{m.name}</p>
                   <p className="text-[11px] leading-relaxed text-ink-500">{m.reason}</p>

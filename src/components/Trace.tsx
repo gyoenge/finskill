@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Icon } from "@/components/Icon";
 import type { TraceStep } from "@/lib/types";
 import { ResultCards } from "@/components/ResultCards";
 
@@ -24,7 +25,7 @@ export function SkillTrace({ trace, sources }: { trace: TraceStep[]; sources?: s
         onClick={() => setOpen((v) => !v)}
         className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface px-2.5 py-1.5 text-[11.5px] font-semibold text-ink-500 transition hover:border-brand-300 hover:text-brand-700"
       >
-        <span>🔍 어떻게 찾았나요?</span>
+        <span className="flex items-center gap-1"><Icon name="search" size={13} /> 어떻게 찾았나요?</span>
         <span className="text-ink-300">·</span>
         <span>Used {trace.length} Skills</span>
         <span className={`transition ${open ? "rotate-180" : ""}`}>⌃</span>
@@ -37,7 +38,9 @@ export function SkillTrace({ trace, sources }: { trace: TraceStep[]; sources?: s
               <li key={`${t.skillId}-${i}`}>
                 <div className="flex items-start gap-2.5">
                   <div className="flex flex-col items-center self-stretch">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-surface text-[14px]">{t.icon}</span>
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-surface text-brand-600">
+                      <Icon name={t.icon as never} size={16} />
+                    </span>
                     {i < trace.length - 1 && <span className="mt-1 w-px flex-1 bg-line" />}
                   </div>
                   <div className="min-w-0 flex-1 pb-1">

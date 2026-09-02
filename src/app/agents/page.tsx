@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Icon } from "@/components/Icon";
 import { useStore, Loading } from "@/components/StoreProvider";
 import { Card, EmptyState, LinkButton, Stat } from "@/components/ui";
 import { DeleteAgentButton } from "@/components/actions";
@@ -25,7 +26,7 @@ export default function AgentsPage() {
 
       {state.agents.length === 0 ? (
         <EmptyState
-          icon="🤖"
+          icon="bot"
           title="아직 Agent 가 없습니다"
           desc="Persona 와 Skill 을 골라 첫 번째 금융 Agent 를 만들어보세요."
           action={<LinkButton href="/agents/new">Agent Builder 열기</LinkButton>}
@@ -38,7 +39,7 @@ export default function AgentsPage() {
             return (
               <Card as="li" key={a.id} className="flex flex-col p-4">
                 <div className="flex items-start gap-3">
-                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-[22px]">🤖</span>
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-brand-600"><Icon name="bot" size={24} /></span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[15px] font-bold text-ink-900">{a.name}</p>
                     <p className="truncate text-[12px] text-ink-500">{a.persona}</p>
@@ -54,8 +55,9 @@ export default function AgentsPage() {
 
                 <div className="mt-3 flex flex-wrap gap-1">
                   {skills.slice(0, 5).map((s) => (
-                    <span key={s.id} className="rounded-lg bg-canvas px-2 py-1 text-[11px] font-medium text-ink-700">
-                      {s.icon} {s.name}
+                    <span key={s.id} className="inline-flex items-center gap-1.5 rounded-lg bg-canvas px-2 py-1 text-[11px] font-medium text-ink-700">
+                      <Icon name={s.icon as never} size={13} />
+                      {s.name}
                     </span>
                   ))}
                   {skills.length > 5 && (

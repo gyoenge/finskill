@@ -70,7 +70,7 @@ export function InstallKitButton({
   const { update } = useStore();
   return (
     <Button size="md" onClick={() => update((s) => ops.installSkills(s, skillIds))}>
-      🧩 {label} ({skillIds.length})
+      {label} ({skillIds.length})
     </Button>
   );
 }

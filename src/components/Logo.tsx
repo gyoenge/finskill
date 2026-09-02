@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { Icon } from "@/components/Icon";
 
 /**
  * FinSkill BI.
@@ -41,16 +42,16 @@ export function HeroArt() {
         <LogoMark size={92} />
       </div>
       <Chip className="left-0 top-2" tone="accent">
-        📊
+        <Icon name="chart" size={17} />
       </Chip>
       <Chip className="right-0 top-0" tone="brand">
-        💳
+        <Icon name="card" size={17} />
       </Chip>
       <Chip className="bottom-1 left-3" tone="brand">
-        🥧
+        <Icon name="pie" size={17} />
       </Chip>
       <Chip className="bottom-4 right-1" tone="accent">
-        ✓
+        <Icon name="check" size={17} />
       </Chip>
     </div>
   );
@@ -67,8 +68,8 @@ function Chip({
 }) {
   return (
     <span
-      className={`absolute flex h-9 w-9 items-center justify-center rounded-xl bg-surface text-[15px] shadow-[0_6px_16px_-8px_rgba(27,42,56,0.35)] ring-1 ${
-        tone === "brand" ? "ring-brand-100" : "ring-accent-100"
+      className={`absolute flex h-9 w-9 items-center justify-center rounded-xl bg-surface shadow-[0_6px_16px_-8px_rgba(27,42,56,0.35)] ring-1 ${
+        tone === "brand" ? "text-brand-600 ring-brand-100" : "text-accent-600 ring-accent-100"
       } ${className}`}
     >
       {children}

@@ -14,7 +14,7 @@ export const SKILLS: Skill[] = [
     id: "sh-youth-housing",
     name: "SH 청년주택 검색",
     version: "1.2.0",
-    icon: "🏢",
+    icon: "building",
     tagline: "서울주택도시공사 청년·신혼 임대주택 공고를 찾아줍니다.",
     description:
       "SH공사가 공급하는 청년매입임대, 역세권 청년주택, 행복주택 공고를 지역·보증금·자격조건으로 검색합니다. 신청 자격을 사용자 조건과 대조해 지원 가능 여부를 함께 알려줍니다.",
@@ -52,7 +52,7 @@ export const SKILLS: Skill[] = [
     id: "lh-youth-housing",
     name: "LH 청년주택 검색",
     version: "1.1.3",
-    icon: "🏘️",
+    icon: "home",
     tagline: "한국토지주택공사 청년 매입·전세임대 공고를 찾아줍니다.",
     description:
       "LH 청년 매입임대, 전세임대, 기숙사형 청년주택 공고를 전국 단위로 검색합니다. 소득·자산 기준과 순위별 자격요건을 함께 확인할 수 있습니다.",
@@ -90,7 +90,7 @@ export const SKILLS: Skill[] = [
     id: "scholarship-finder",
     name: "장학금 탐색",
     version: "1.4.1",
-    icon: "🎓",
+    icon: "graduation",
     tagline: "국가·교내·재단 장학금을 조건에 맞춰 찾아줍니다.",
     description:
       "한국장학재단 국가장학금과 민간 재단 장학금 공고를 검색하고, 학년·소득분위·전공·거주지 조건으로 지원 가능한 장학금을 매칭합니다.",
@@ -135,7 +135,7 @@ export const SKILLS: Skill[] = [
     id: "youth-policy-search",
     name: "청년정책 검색",
     version: "1.3.0",
-    icon: "📢",
+    icon: "megaphone",
     tagline: "중앙정부·지자체 청년 지원사업을 한 번에 찾아줍니다.",
     description:
       "청년월세지원, 청년내일저축계좌, 청년도약계좌, 취업지원 등 중앙부처와 지자체 청년정책을 지역·관심분야로 검색하고 신청 자격을 확인합니다.",
@@ -173,7 +173,7 @@ export const SKILLS: Skill[] = [
     id: "fin-term-explainer",
     name: "금융용어 설명",
     version: "2.0.0",
-    icon: "📖",
+    icon: "book",
     tagline: "어려운 금융용어를 공식 정의 기반으로 쉽게 풀어줍니다.",
     description:
       "금융감독원·한국은행 등 공식 문서를 근거로 금융용어와 상품 구조를 설명합니다. 추측하지 않고 검색된 정의를 근거로만 답하며 출처를 함께 표시합니다.",
@@ -208,7 +208,7 @@ export const SKILLS: Skill[] = [
     id: "savings-calculator",
     name: "적금 계산",
     version: "1.0.4",
-    icon: "🧮",
+    icon: "calculator",
     tagline: "적금 만기 수령액을 이자·세금까지 정확히 계산합니다.",
     description:
       "월 납입액·기간·금리를 입력하면 단리/복리 방식으로 만기 수령액, 세전·세후 이자, 이자소득세를 결정론적 코드로 계산합니다. LLM 이 숫자를 추정하지 않습니다.",
@@ -247,7 +247,7 @@ export const SKILLS: Skill[] = [
     id: "spending-analyzer",
     name: "소비 분석",
     version: "1.5.2",
-    icon: "📊",
+    icon: "chart",
     tagline: "월 지출 구조를 분석해 새는 돈을 찾아줍니다.",
     description:
       "입력한 수입과 지출 항목을 기준으로 저축률, 고정비 비중, 가장 큰 지출 항목, 절감 가능 금액을 계산합니다. 모든 계산은 결정론적 코드가 수행합니다.",
@@ -288,7 +288,7 @@ export const SKILLS: Skill[] = [
     id: "fraud-guard",
     name: "금융사기 대응",
     version: "1.2.1",
-    icon: "🛡️",
+    icon: "shield",
     tagline: "의심스러운 금융 메시지를 진단하고 대응 절차를 안내합니다.",
     description:
       "보이스피싱·스미싱·불법 대출광고 등 의심 사례의 위험 신호를 규칙 기반으로 진단하고, 금융감독원·경찰청 공식 대응 절차(지급정지, 신고)를 순서대로 안내합니다.",
@@ -326,7 +326,7 @@ export const SKILLS: Skill[] = [
     id: "deposit-compare",
     name: "예·적금 비교",
     version: "1.1.0",
-    icon: "⚖️",
+    icon: "scale",
     tagline: "은행별 예금·적금 금리를 조건에 맞게 비교합니다.",
     description:
       "금융감독원 금융상품통합비교공시 기준 예·적금 상품을 기간·가입방식·우대조건으로 비교하고, 조건 충족 시 실수령 이자를 함께 보여줍니다.",
@@ -364,7 +364,7 @@ export const SKILLS: Skill[] = [
     id: "goal-savings-planner",
     name: "목표저축 플래너",
     version: "1.0.2",
-    icon: "🎯",
+    icon: "target",
     tagline: "목표 금액까지 매달 얼마씩 모아야 하는지 계획을 세웁니다.",
     description:
       "목표 금액과 기한, 현재 저축 가능액을 기준으로 월 저축액, 달성 가능 여부, 부족분을 계산하고 비상금 우선 확보 등 단계별 실행 계획을 제시합니다.",
@@ -404,7 +404,7 @@ export const SKILLS: Skill[] = [
     id: "tuition-loan-planner",
     name: "등록금·학자금 플래너",
     version: "1.0.0",
-    icon: "💸",
+    icon: "receipt",
     tagline: "등록금 부담액과 학자금대출 상환 계획을 계산합니다.",
     description:
       "등록금에서 장학금·지원금을 차감한 실부담액을 계산하고, 학자금대출(취업 후 상환/일반 상환) 구조를 설명하며 학기별 자금 계획을 만듭니다.",
@@ -444,7 +444,7 @@ export const SKILLS: Skill[] = [
     id: "credit-coach",
     name: "신용관리 코치",
     version: "1.0.1",
-    icon: "📈",
+    icon: "trending",
     tagline: "신용점수 구조를 설명하고 개선 행동을 제안합니다.",
     description:
       "신용평가 항목(상환이력·부채수준·신용거래기간·형태)을 공식 자료 기반으로 설명하고, 사용자의 상황에 맞는 신용점수 관리 행동을 우선순위로 정리합니다.",
@@ -480,7 +480,7 @@ export const SKILLS: Skill[] = [
     id: "lh-notice-live",
     name: "LH 공고 실시간 조회",
     version: "1.0.0",
-    icon: "📡",
+    icon: "signal",
     tagline: "LH 임대주택 모집공고를 공공데이터포털에서 실시간으로 가져옵니다.",
     description:
       "한국토지주택공사 분양임대공고문 조회 서비스(공공데이터포털)를 실시간 호출해 현재 진행 중인 공고와 마감일을 확인합니다. 시드 데이터가 아닌 실제 공고입니다. 다만 이 API 는 공고 목록만 제공하므로 보증금·월세·면적은 알 수 없습니다.",
@@ -522,7 +522,7 @@ export const SKILLS: Skill[] = [
     id: "youth-asset-match",
     name: "청년 자산형성 매칭",
     version: "1.0.0",
-    icon: "🏦",
+    icon: "bank",
     tagline: "내 조건에서 가입 가능한 제도와 최적 조합을 계산합니다.",
     description:
       "청년미래적금·청년내일저축계좌·ISA 등 청년 자산형성 제도의 가입요건을 내 나이·소득·가구소득과 대조해 판정하고, 중복가입 제한을 반영해 월 저축여력 안에서 정부기여금이 최대가 되는 조합을 계산합니다. 자격 판정과 계산은 전부 코드가 수행하며 AI 는 결과를 설명만 합니다.",
@@ -585,7 +585,7 @@ export const SKILLS: Skill[] = [
     id: "youth-policy-live",
     name: "청년정책 실시간 조회",
     version: "1.0.0",
-    icon: "🛰️",
+    icon: "signal",
     tagline: "온통청년에서 청년정책을 실시간으로 가져옵니다.",
     description:
       "한국고용정보원 온통청년 API 를 실시간 호출해 일자리·주거·교육·복지문화 분야 청년정책을 조회합니다. 시드 데이터가 아닌 실제 등록 정책이며, 질문 내용에 따라 분야를 자동으로 좁힙니다.",

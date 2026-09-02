@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Icon } from "@/components/Icon";
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import type { Agent, ChatMessage, EvidenceCheck, Skill } from "@/lib/types";
@@ -166,8 +167,8 @@ export function ChatClient({
       <Card className="flex h-[calc(100vh-13rem)] min-h-[32rem] flex-col overflow-hidden">
         {/* Header */}
         <div className="flex items-center gap-3 border-b border-line px-4 py-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-[19px]">
-            🤖
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+            <Icon name="bot" size={21} />
           </span>
           <div className="min-w-0 flex-1">
             <p className="truncate text-[13.5px] font-bold text-ink-900">{agent.name}</p>
@@ -185,7 +186,7 @@ export function ChatClient({
         <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
           {messages.length === 0 && (
             <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
-              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-[26px]">💬</span>
+              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-600"><Icon name="chat" size={28} /></span>
               <p className="text-[14px] font-semibold text-ink-900">무엇을 도와드릴까요?</p>
               <p className="max-w-sm text-[12.5px] leading-relaxed text-ink-500">
                 장착된 Skill 을 조합해 답변합니다. 필요한 Skill 이 없으면 무엇이 부족한지 알려드립니다.
@@ -232,7 +233,7 @@ export function ChatClient({
                   )}
                   {m.recipeName && (
                     <p className="mb-1.5 inline-flex items-center gap-1 rounded-lg bg-accent-50 px-2 py-0.5 text-[11px] font-bold text-accent-700">
-                      🧪 {m.recipeName}
+                      <Icon name="flask" size={13} /> {m.recipeName}
                     </p>
                   )}
                   {m.evidence && <EvidenceBadge evidence={m.evidence} />}
@@ -335,7 +336,7 @@ export function ChatClient({
               <ul className="mt-1.5 space-y-1">
                 {disabled.map((s) => (
                   <li key={s.id} className="flex items-center gap-2 rounded-lg bg-risk-medium-bg px-2 py-1.5">
-                    <span className="text-[13px] grayscale">{s.icon}</span>
+                    <span className="text-ink-400"><Icon name={s.icon as never} size={15} /></span>
                     <span className="min-w-0 flex-1 truncate text-[11.5px] font-medium text-ink-500">{s.name}</span>
                     <span className="shrink-0 rounded bg-white/70 px-1 text-[10px] font-bold text-risk-medium">OFF</span>
                   </li>
@@ -467,7 +468,7 @@ function Thinking({ equipped, label }: { equipped: Skill[]; label: string }) {
       <span className="ml-auto flex gap-0.5">
         {equipped.slice(0, 6).map((s) => (
           <span key={s.id} className="text-[13px] opacity-60">
-            {s.icon}
+            <Icon name={s.icon as never} size={14} />
           </span>
         ))}
       </span>

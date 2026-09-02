@@ -168,7 +168,7 @@ export function buildCustomSkill(draft: CustomSkillDraft): Skill {
     id,
     name: draft.name.trim(),
     version: "0.1.0",
-    icon: draft.icon || "🧩",
+    icon: draft.icon || "puzzle",
     tagline: draft.description.split("\n")[0].slice(0, 60),
     description: draft.description.trim(),
     category: draft.category.length ? draft.category : ["literacy"],

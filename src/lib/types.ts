@@ -76,7 +76,7 @@ export interface Skill {
   id: string;
   name: string;
   version: string;
-  /** 이모지 아이콘 — 퍼즐 조각 카드에 표시 */
+  /** 아이콘 이름 (src/components/Icon.tsx 의 IconName) */
   icon: string;
   tagline: string;
   description: string;

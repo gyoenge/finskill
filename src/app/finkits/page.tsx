@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Icon } from "@/components/Icon";
 import { useStore } from "@/components/StoreProvider";
 import { FINKITS, PERSONA_MAP, RECIPES } from "@/lib/data/personas";
 import { Card, LinkButton, SectionHeader } from "@/components/ui";
@@ -33,7 +34,7 @@ export default function FinKitPage() {
             <Card key={kit.id} className={`p-5 ${mine ? "border-brand-300 ring-1 ring-brand-100" : ""}`}>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="flex items-start gap-3">
-                  <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-[26px]">{kit.icon}</span>
+                  <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-brand-600"><Icon name={kit.icon as never} size={28} /></span>
                   <div>
                     <div className="flex items-center gap-1.5">
                       <p className="text-[16px] font-bold text-ink-900">{kit.name}</p>
@@ -44,7 +45,7 @@ export default function FinKitPage() {
                       )}
                     </div>
                     <p className="text-[12.5px] text-ink-500">
-                      {persona.icon} {persona.summary}
+                      {persona.summary}
                     </p>
                   </div>
                 </div>
@@ -112,7 +113,7 @@ export default function FinKitPage() {
                         <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-canvas text-[10px] font-bold text-ink-400">
                           {i + 1}
                         </span>
-                        <span className="shrink-0">{s?.icon ?? "🧩"}</span>
+                        <span className="shrink-0 text-brand-600"><Icon name={(s?.icon ?? "puzzle") as never} size={14} /></span>
                         <span className="truncate font-medium text-ink-700">{step.note}</span>
                         {!installed.has(step.skillId) && (
                           <span className="ml-auto shrink-0 text-[10.5px] text-ink-300">미보유</span>
@@ -127,7 +128,7 @@ export default function FinKitPage() {
                   ) : runnableAgent ? (
                     // 모든 단계 Skill 이 장착된 Agent 로 순차 실행한다 (§15)
                     <LinkButton href={`/agents/${runnableAgent.id}/chat?recipe=${r.id}`} size="sm">
-                      ▶ 이 Recipe 실행하기
+                      이 Recipe 실행하기
                     </LinkButton>
                   ) : (
                     <p className="text-[12px] text-ink-400">

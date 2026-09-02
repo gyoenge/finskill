@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Icon } from "@/components/Icon";
 import type { Axis, Category, PersonaId, Skill } from "@/lib/types";
 import { AXIS_SHORT, CATEGORY_LABEL, PERSONAS, TYPE_TO_AXIS } from "@/lib/data/personas";
 import { SkillCard } from "@/components/SkillCard";
@@ -54,7 +55,9 @@ export function ShopClient({ catalog, installedIds }: { catalog: Skill[]; instal
           placeholder="어떤 금융 능력이 필요하세요? (예: 월세, 장학금, 적금)"
           className="w-full rounded-2xl border border-line bg-surface py-3 pl-11 pr-4 text-[13.5px] text-ink-900 outline-none transition placeholder:text-ink-300 focus:border-brand-400"
         />
-        <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[15px]">🔍</span>
+        <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink-400">
+          <Icon name="search" size={17} />
+        </span>
       </div>
 
       {/* 분야 칩 + 정렬 (시안: 스킬샵 상단) */}
@@ -115,7 +118,7 @@ export function ShopClient({ catalog, installedIds }: { catalog: Skill[]; instal
               </Chip>
               {PERSONAS.map((p) => (
                 <Chip key={p.id} active={persona === p.id} onClick={() => setPersona(p.id)}>
-                  {p.icon} {p.name}
+                  {p.name}
                 </Chip>
               ))}
             </FilterRow>
@@ -142,7 +145,7 @@ export function ShopClient({ catalog, installedIds }: { catalog: Skill[]; instal
         </ul>
       ) : (
         <EmptyState
-          icon="🔍"
+          icon="search"
           title="조건에 맞는 Skill 이 없습니다"
           desc="검색어나 필터를 바꿔보세요. 원하는 능력이 없다면 Skill Builder 로 직접 만들 수도 있습니다."
         />

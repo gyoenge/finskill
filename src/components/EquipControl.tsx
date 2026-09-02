@@ -33,7 +33,7 @@ export function EquipControl({ skillId, agents }: { skillId: string; agents: Age
                 : "border-line bg-surface text-ink-400 hover:border-brand-300"
             }`}
           >
-            {on ? "🧩" : "＋"} {a.name}
+            {on ? "✓" : "＋"} {a.name}
           </button>
         );
       })}

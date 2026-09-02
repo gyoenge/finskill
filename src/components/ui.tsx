@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import type { Axis, Category, RiskLevel, SkillType } from "@/lib/types";
 import { CATEGORY_LABEL, TYPE_LABEL } from "@/lib/data/personas";
+import { Icon, type IconName } from "@/components/Icon";
 
 export function Card({
   children,
@@ -23,17 +24,17 @@ export function Card({
  * Skill 아이콘 타일 — 시안의 파스텔 배경 + 이모지 조합.
  * Skill 의 첫 Category 로 색을 정해 같은 분야끼리 시각적으로 묶인다.
  */
-const TILE_TONE: Record<string, string> = {
-  housing: "bg-brand-50",
-  youth: "bg-accent-50",
-  education: "bg-accent-50",
-  saving: "bg-brand-50",
-  wealth: "bg-brand-50",
-  spending: "bg-[#fdf4e5]",
-  credit: "bg-[#f0eefe]",
-  security: "bg-[#fdedf0]",
-  literacy: "bg-[#fdf4e5]",
-  invest: "bg-[#f0eefe]",
+const TILE_TONE: Record<string, { bg: string; fg: string }> = {
+  housing: { bg: "bg-brand-50", fg: "text-brand-600" },
+  youth: { bg: "bg-accent-50", fg: "text-accent-600" },
+  education: { bg: "bg-accent-50", fg: "text-accent-600" },
+  saving: { bg: "bg-brand-50", fg: "text-brand-600" },
+  wealth: { bg: "bg-brand-50", fg: "text-brand-600" },
+  spending: { bg: "bg-[#fdf4e5]", fg: "text-[#c2791a]" },
+  credit: { bg: "bg-[#f0eefe]", fg: "text-[#6b5bd6]" },
+  security: { bg: "bg-[#fdedf0]", fg: "text-[#d64560]" },
+  literacy: { bg: "bg-[#fdf4e5]", fg: "text-[#c2791a]" },
+  invest: { bg: "bg-[#f0eefe]", fg: "text-[#6b5bd6]" },
 };
 
 export function IconTile({
@@ -41,17 +42,15 @@ export function IconTile({
   category,
   size = 44,
 }: {
+  /** IconName */
   icon: string;
   category?: string;
   size?: number;
 }) {
-  const tone = (category && TILE_TONE[category]) || "bg-brand-50";
+  const tone = (category && TILE_TONE[category]) || TILE_TONE.saving;
   return (
-    <span
-      className={`icon-tile ${tone}`}
-      style={{ width: size, height: size, fontSize: Math.round(size * 0.46) }}
-    >
-      {icon}
+    <span className={`icon-tile ${tone.bg} ${tone.fg}`} style={{ width: size, height: size }}>
+      <Icon name={icon as IconName} size={Math.round(size * 0.5)} />
     </span>
   );
 }
@@ -222,6 +221,7 @@ export function EmptyState({
   desc,
   action,
 }: {
+  /** IconName */
   icon: string;
   title: string;
   desc: string;
@@ -229,7 +229,9 @@ export function EmptyState({
 }) {
   return (
     <Card className="flex flex-col items-center gap-2 px-6 py-12 text-center">
-      <div className="text-3xl">{icon}</div>
+      <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
+        <Icon name={icon as IconName} size={24} />
+      </span>
       <p className="text-[14px] font-semibold text-ink-900">{title}</p>
       <p className="max-w-sm text-[13px] leading-relaxed text-ink-500">{desc}</p>
       {action && <div className="mt-2">{action}</div>}
