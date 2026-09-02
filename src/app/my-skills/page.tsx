@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useStore, Loading } from "@/components/StoreProvider";
 import { SKILL_MAP } from "@/lib/data/skills";
+import { AXIS_LABEL, AXIS_SHORT, TYPE_TO_AXIS } from "@/lib/data/personas";
+import type { Axis } from "@/lib/types";
 import { Card, EmptyState, IconTile, LinkButton, RiskBadge, SectionHeader, VerifiedBadge } from "@/components/ui";
 import { RemoveSkillButton, ToggleSkill } from "@/components/actions";
 import { EquipControl } from "@/components/EquipControl";
@@ -18,6 +20,13 @@ export default function MySkillsPage() {
     );
 
   const enabledSkills = rows.filter((r) => r.install.enabled).map((r) => r.skill);
+
+  // 설치 목록이 아니라 "내 Agent 의 능력 목록" 으로 보이도록 4개 축으로 묶는다 (§6.2, §17)
+  const AXES: Axis[] = ["FIND", "UNDERSTAND", "MANAGE", "PROTECT"];
+  const grouped = AXES.map((axis) => ({
+    axis,
+    rows: rows.filter((r) => r.skill.type.some((t) => TYPE_TO_AXIS[t] === axis)),
+  }));
 
   if (!ready) return <Loading />;
 
@@ -44,8 +53,25 @@ export default function MySkillsPage() {
         />
       ) : (
         <div className="grid gap-5 lg:grid-cols-[1.6fr_1fr]">
-          <ul className="space-y-2.5">
-            {rows.map(({ install, skill }) => {
+          <div className="space-y-5">
+            {grouped.map(({ axis, rows: group }) => (
+              <section key={axis}>
+                <div className="mb-2 flex items-baseline gap-2">
+                  <h2 className="text-[13px] font-bold text-ink-900">{AXIS_SHORT[axis]}</h2>
+                  <span className="text-[11.5px] text-ink-400">
+                    {group.length}개 · {AXIS_LABEL[axis]}
+                  </span>
+                </div>
+                {group.length === 0 ? (
+                  <p className="rounded-xl border border-dashed border-line px-3 py-4 text-center text-[12px] text-ink-400">
+                    이 능력이 아직 없습니다.{" "}
+                    <Link href="/shop" className="font-semibold text-brand-700 hover:underline">
+                      스킬샵에서 찾기 →
+                    </Link>
+                  </p>
+                ) : (
+                  <ul className="space-y-2.5">
+                    {group.map(({ install, skill }) => {
               const latest = SKILL_MAP[skill.id]?.version ?? skill.version;
               const outdated = latest !== install.version;
               return (
@@ -96,9 +122,13 @@ export default function MySkillsPage() {
                     <EquipControl skillId={skill.id} agents={state.agents} />
                   </div>
                 </Card>
-              );
-            })}
-          </ul>
+                      );
+                    })}
+                  </ul>
+                )}
+              </section>
+            ))}
+          </div>
 
           <div className="space-y-4">
             <SkillDna skills={enabledSkills} catalog={catalog} />

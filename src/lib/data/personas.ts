@@ -206,6 +206,14 @@ export const TYPE_TO_AXIS: Record<SkillType, Axis> = {
   action: "PROTECT",
 };
 
+/** 화면에 노출하는 짧은 축 이름 — 내부 Type 9종 대신 사용자에게는 이 4개만 보인다 */
+export const AXIS_SHORT: Record<Axis, string> = {
+  FIND: "찾기",
+  UNDERSTAND: "이해하기",
+  MANAGE: "관리하기",
+  PROTECT: "보호하기",
+};
+
 export const AXIS_LABEL: Record<Axis, string> = {
   FIND: "금융기회를 찾는 능력",
   UNDERSTAND: "금융정보를 이해하는 능력",

@@ -15,13 +15,15 @@ export default function SkillDetailPage() {
   const { state, ready, catalog } = useStore();
   const skill = catalog.find((s) => s.id === id);
 
-  if (!ready) return <Loading />;
+  // 기본 카탈로그는 SSR 에서 바로 잡히고, Custom Skill 만 하이드레이션 후에 합류한다.
+  // 따라서 "없는 Skill" 판정은 스토어를 읽은 뒤에만 내린다.
   if (!skill) {
+    if (!ready) return <Loading />;
     return (
       <div className="py-16 text-center">
         <p className="text-[15px] font-semibold text-ink-900">존재하지 않는 Skill 입니다.</p>
         <Link href="/shop" className="mt-2 inline-block text-[13px] font-semibold text-brand-700 hover:underline">
-          ← 스킬샵으로 돌아가기 으로 돌아가기
+          ← 스킬샵으로 돌아가기
         </Link>
       </div>
     );

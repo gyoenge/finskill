@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useStore, Loading } from "@/components/StoreProvider";
+import { useStore } from "@/components/StoreProvider";
 import { FINKITS, PERSONA_MAP, RECIPES } from "@/lib/data/personas";
 import { Card, LinkButton, SectionHeader } from "@/components/ui";
 import { InstallKitButton } from "@/components/actions";
@@ -9,11 +9,9 @@ import { SkillChip } from "@/components/SkillCard";
 
 /** 화면 05. FinKit (README §8, §27) + Skill Recipe (§15) */
 export default function FinKitPage() {
-  const { state, ready, catalog } = useStore();
+  const { state, catalog } = useStore();
   const installed = new Set(state.installed.map((i) => i.skillId));
   const myPersona = state.personaId;
-
-  if (!ready) return <Loading />;
 
   const kits = [...FINKITS].sort((a, b) => (a.persona === myPersona ? -1 : b.persona === myPersona ? 1 : 0));
 
@@ -22,7 +20,7 @@ export default function FinKitPage() {
       <header>
         <h1 className="text-[22px] font-extrabold tracking-tight text-ink-900">FinKit</h1>
         <p className="mt-1 text-[13px] text-ink-500">
-          Persona 별로 미리 구성된 스킬 묶음입니다. 하나씩 찾을 필요 없이 한 번에 설치하세요.
+          FinKit = 나에게 필요한 금융 능력을 한 번에 갖추는 스킬 세트입니다. 하나씩 찾을 필요가 없습니다.
         </p>
       </header>
 

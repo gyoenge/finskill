@@ -86,11 +86,30 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* 왜 범용 챗봇이 아니라 FinSkill 인가 — 심사에서 가장 먼저 나올 질문에 대한 답 */}
+      <section className="grid gap-3 sm:grid-cols-3">
+        <WhyCard
+          icon="🔒"
+          title="검증된 데이터"
+          desc="공공 API·공식 문서에서만 답합니다. 모델이 기억으로 지어내지 않습니다."
+        />
+        <WhyCard
+          icon="🔍"
+          title="근거를 보여줍니다"
+          desc="어떤 스킬이 어떤 데이터로 답했는지 추적하고, 답변의 숫자를 결과와 대조합니다."
+        />
+        <WhyCard
+          icon="🧩"
+          title="능력이 자랍니다"
+          desc="못 하는 요청은 무엇이 부족한지 알려주고, 그 능력을 장착해 이어서 처리합니다."
+        />
+      </section>
+
       {/* My Agent */}
       <section>
         <SectionHeader
           title="나의 에이전트"
-          desc="Persona + Instructions + Skill Set + LLM 으로 구성된 나만의 금융 에이전트"
+          desc="스킬을 장착해 만든 나만의 금융 AI 입니다."
           action={
             agent ? (
               <LinkButton href={`/agents/${agent.id}/chat`} size="sm">
@@ -203,7 +222,7 @@ export default function HomePage() {
         <section>
           <SectionHeader
             title="추천 스킬"
-            desc="Persona 와 관심 분야를 기준으로 정렬했습니다."
+            desc="스킬 = 에이전트에 장착하는 금융 능력 하나. 관심 분야를 기준으로 정렬했습니다."
             action={
               <Link href="/shop" className="text-[12px] font-semibold text-brand-700 hover:underline">
                 스킬샵
@@ -239,5 +258,16 @@ export default function HomePage() {
         </section>
       )}
     </div>
+  );
+}
+
+/** 홈 상단의 3가지 방어 논리 카드 */
+function WhyCard({ icon, title, desc }: { icon: string; title: string; desc: string }) {
+  return (
+    <Card className="p-4">
+      <span className="text-[18px]">{icon}</span>
+      <p className="mt-1.5 text-[13px] font-bold text-ink-900">{title}</p>
+      <p className="mt-1 text-[11.5px] leading-relaxed text-ink-500">{desc}</p>
+    </Card>
   );
 }

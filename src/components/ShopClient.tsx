@@ -1,19 +1,20 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { Category, PersonaId, Skill, SkillType } from "@/lib/types";
-import { CATEGORY_LABEL, PERSONAS, TYPE_LABEL } from "@/lib/data/personas";
+import type { Axis, Category, PersonaId, Skill } from "@/lib/types";
+import { AXIS_SHORT, CATEGORY_LABEL, PERSONAS, TYPE_TO_AXIS } from "@/lib/data/personas";
 import { SkillCard } from "@/components/SkillCard";
 import { EmptyState } from "@/components/ui";
 
 type Sort = "popular" | "new" | "rating";
+
 
 /** 화면 02. Skill Shop (README §7.1, §27) */
 export function ShopClient({ catalog, installedIds }: { catalog: Skill[]; installedIds: string[] }) {
   const installed = useMemo(() => new Set(installedIds), [installedIds]);
   const [q, setQ] = useState("");
   const [category, setCategory] = useState<Category | "all">("all");
-  const [type, setType] = useState<SkillType | "all">("all");
+  const [axis, setAxis] = useState<Axis | "all">("all");
   const [persona, setPersona] = useState<PersonaId | "all">("all");
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [sort, setSort] = useState<Sort>("popular");
@@ -21,7 +22,7 @@ export function ShopClient({ catalog, installedIds }: { catalog: Skill[]; instal
 
   // 상세 필터에서 몇 개가 걸려 있는지 — 접혀 있어도 알 수 있게 배지로 표시한다.
   const activeExtra =
-    (type !== "all" ? 1 : 0) + (persona !== "all" ? 1 : 0) + (verifiedOnly ? 1 : 0);
+    (persona !== "all" ? 1 : 0) + (verifiedOnly ? 1 : 0);
 
   const list = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -31,7 +32,7 @@ export function ShopClient({ catalog, installedIds }: { catalog: Skill[]; instal
         if (!hay.includes(needle)) return false;
       }
       if (category !== "all" && !s.category.includes(category)) return false;
-      if (type !== "all" && !s.type.includes(type)) return false;
+      if (axis !== "all" && !s.type.some((t) => TYPE_TO_AXIS[t] === axis)) return false;
       if (persona !== "all" && !s.personas.includes(persona)) return false;
       if (verifiedOnly && !s.verified) return false;
       return true;
@@ -42,7 +43,7 @@ export function ShopClient({ catalog, installedIds }: { catalog: Skill[]; instal
       return b.installCount - a.installCount;
     });
     return out;
-  }, [catalog, q, category, type, persona, verifiedOnly, sort]);
+  }, [catalog, q, category, axis, persona, verifiedOnly, sort]);
 
   return (
     <div className="space-y-5">
@@ -80,7 +81,20 @@ export function ShopClient({ catalog, installedIds }: { catalog: Skill[]; instal
         </select>
       </div>
 
-      {/* 상세 필터 — README §27 의 Type / Persona / Verified 필터 */}
+      {/* 능력 축 — 내부 Type 9종 대신 사용자에게는 4개만 보인다 (§6.2) */}
+      <div className="flex flex-wrap items-center gap-1.5">
+        <span className="mr-1 text-[11px] font-bold text-ink-400">능력</span>
+        <Chip active={axis === "all"} onClick={() => setAxis("all")}>
+          전체
+        </Chip>
+        {(["FIND", "UNDERSTAND", "MANAGE", "PROTECT"] as Axis[]).map((a) => (
+          <Chip key={a} active={axis === a} onClick={() => setAxis(a)}>
+            {AXIS_SHORT[a]}
+          </Chip>
+        ))}
+      </div>
+
+      {/* 상세 필터 — Persona / Verified */}
       <div>
         <button
           onClick={() => setMoreOpen((v) => !v)}
@@ -95,16 +109,6 @@ export function ShopClient({ catalog, installedIds }: { catalog: Skill[]; instal
 
         {moreOpen && (
           <div className="fade-up mt-2.5 space-y-2.5 rounded-2xl border border-line bg-surface p-3.5">
-            <FilterRow label="기능">
-              <Chip active={type === "all"} onClick={() => setType("all")}>
-                전체
-              </Chip>
-              {(Object.keys(TYPE_LABEL) as SkillType[]).map((t) => (
-                <Chip key={t} active={type === t} onClick={() => setType(t)}>
-                  {TYPE_LABEL[t]}
-                </Chip>
-              ))}
-            </FilterRow>
             <FilterRow label="Persona">
               <Chip active={persona === "all"} onClick={() => setPersona("all")}>
                 전체
