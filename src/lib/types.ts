@@ -242,4 +242,68 @@ export interface UserState {
   customSkills: Skill[];
   chats: Record<string, ChatMessage[]>;
   recentSkillIds: string[];
+  routines: Routine[];
+  routineRuns: RoutineRun[];
+}
+
+
+/* ---------------- 루틴 (AX 자동화) ---------------- */
+
+export type RoutineKind =
+  /** 마감이 다가오는 공고·장학금 감시 */
+  | "deadline"
+  /** 청년정책 신규·변경 감시 */
+  | "policy-change"
+  /** 월간 소비·목표 점검 */
+  | "monthly-review"
+  /** 사용자가 고른 Recipe 또는 Skill 실행 */
+  | "custom";
+
+export interface Routine {
+  id: string;
+  name: string;
+  kind: RoutineKind;
+  agentId: string;
+  enabled: boolean;
+  /** 실행 주기 */
+  every: "daily" | "weekly" | "monthly";
+  /** 시작일 (YYYY-MM-DD) */
+  startsAt: string;
+  /** 종료일. 없으면 무기한 — "2주간 매일" 같은 기간 한정을 위해 쓴다 */
+  endsAt?: string;
+  target: {
+    /** 관심 키워드 (예: "이공계", "관악구") */
+    keyword?: string;
+    /** 마감 감시 기준일 수 */
+    withinDays?: number;
+    recipeId?: string;
+    skillIds?: string[];
+  };
+  lastRunAt?: string;
+  /** 이미 보고한 항목 — 같은 내용을 매일 반복해서 알리지 않기 위해 */
+  seenIds: string[];
+  createdAt: string;
+}
+
+export interface RoutineFinding {
+  /** 중복 판정 키 */
+  id: string;
+  title: string;
+  detail: string;
+  /** 마감까지 남은 일수 */
+  dday?: number;
+  url?: string;
+  tone: "urgent" | "info" | "change";
+}
+
+export interface RoutineRun {
+  id: string;
+  routineId: string;
+  routineName: string;
+  ranAt: string;
+  summary: string;
+  /** 이번에 새로 발견된 것만 */
+  findings: RoutineFinding[];
+  /** 조회했지만 이미 보고한 것 수 */
+  skipped: number;
 }

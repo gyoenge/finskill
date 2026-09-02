@@ -9,6 +9,7 @@ import { recommendKit, recommendSkills } from "@/lib/recommend";
 import { FINKITS, PERSONA_MAP } from "@/lib/data/personas";
 import { Card, IconTile, LinkButton, SectionHeader, Stat } from "@/components/ui";
 import { HeroArt } from "@/components/Logo";
+import { RoutineRunner } from "@/components/RoutineRunner";
 import { SkillCard, SkillChip } from "@/components/SkillCard";
 import { SkillDna } from "@/components/SkillDna";
 import { InstallKitButton, ResetDemoButton } from "@/components/actions";
@@ -86,6 +87,8 @@ export default function HomePage() {
           <HeroArt />
         </div>
       </section>
+
+      <RoutineRunner />
 
       {/* My Agent */}
       <section>

@@ -10,6 +10,7 @@ const ITEMS = [
   { href: "/my-skills", label: "나의 스킬", icon: StackIcon },
   { href: "/finkits", label: "FinKit", icon: KitIcon },
   { href: "/agents", label: "나의 에이전트", icon: BotIcon },
+  { href: "/routines", label: "루틴", icon: ClockIcon },
   { href: "/skill-builder", label: "스킬 만들기", icon: BuildIcon },
 ];
 
@@ -140,6 +141,15 @@ function BotIcon({ active }: IconProps) {
       <path d="M12 4.5V8" />
       <circle cx="12" cy="3.4" r="1.4" />
       <path d="M9 13.5h.01M15 13.5h.01" />
+    </svg>
+  );
+}
+
+function ClockIcon({ active }: IconProps) {
+  return (
+    <svg {...base(active)}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7.5V12l3 2" />
     </svg>
   );
 }

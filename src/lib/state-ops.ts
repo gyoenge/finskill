@@ -10,6 +10,7 @@ import type {
   UserState,
 } from "@/lib/types";
 import { SKILLS } from "@/lib/data/skills";
+import type { Routine, RoutineRun } from "@/lib/types";
 
 /**
  * 사용자 상태 전이 — 전부 순수 함수다.
@@ -28,6 +29,8 @@ export const EMPTY_STATE: UserState = {
   customSkills: [],
   chats: {},
   recentSkillIds: [],
+  routines: [],
+  routineRuns: [],
 };
 
 /** 기본 카탈로그 + 사용자가 만든 Custom Skill (§21) */
@@ -219,4 +222,50 @@ export function buildCustomSkill(draft: CustomSkillDraft): Skill {
 
 export function addCustomSkill(s: UserState, skill: Skill): UserState {
   return installSkills({ ...s, customSkills: [...s.customSkills, skill] }, [skill.id]);
+}
+
+
+/* ---------------- 루틴 ---------------- */
+
+export function addRoutine(s: UserState, input: Omit<Routine, "id" | "createdAt" | "seenIds" | "lastRunAt">): {
+  state: UserState;
+  routine: Routine;
+} {
+  const routine: Routine = {
+    ...input,
+    id: `rt_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`,
+    seenIds: [],
+    createdAt: new Date().toISOString(),
+  };
+  return { routine, state: { ...s, routines: [...s.routines, routine] } };
+}
+
+export function updateRoutine(s: UserState, id: string, patch: Partial<Routine>): UserState {
+  return { ...s, routines: s.routines.map((r) => (r.id === id ? { ...r, ...patch, id: r.id } : r)) };
+}
+
+export function deleteRoutine(s: UserState, id: string): UserState {
+  return {
+    ...s,
+    routines: s.routines.filter((r) => r.id !== id),
+    routineRuns: s.routineRuns.filter((x) => x.routineId !== id),
+  };
+}
+
+/** 실행 결과 기록 + 보고한 항목 기억 (중복 알림 방지) */
+export function recordRoutineRun(s: UserState, run: RoutineRun): UserState {
+  return {
+    ...s,
+    routines: s.routines.map((r) =>
+      r.id === run.routineId
+        ? {
+            ...r,
+            lastRunAt: run.ranAt,
+            seenIds: [...run.findings.map((f) => f.id), ...r.seenIds].slice(0, 300),
+          }
+        : r,
+    ),
+    // 최근 20회만 보관한다.
+    routineRuns: [run, ...s.routineRuns].slice(0, 20),
+  };
 }
