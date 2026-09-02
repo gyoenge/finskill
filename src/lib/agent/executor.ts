@@ -9,7 +9,19 @@ import {
 } from "@/lib/data/seed";
 import type { Skill } from "@/lib/types";
 import { fetchLhNotices, lhKeyAvailable, noticeFacts } from "@/lib/agent/api/lh";
+import {
+  fetchYouthPolicies,
+  guessCategory,
+  policyFacts,
+  youthKeyAvailable,
+} from "@/lib/agent/api/youth-policy";
 import { buildAssetPlan, planFacts, type AssetProfile } from "@/lib/agent/youth-asset";
+import {
+  SCHOLARSHIPS_REAL,
+  SCHOLARSHIP_SNAPSHOT_DATE,
+  SCHOLARSHIP_SOURCE,
+  type ScholarshipRecord,
+} from "@/lib/data/seed/scholarships";
 
 /**
  * Skill Executor (README §20, §34)
@@ -178,34 +190,63 @@ const housingSearch = (agency: "SH" | "LH"): Handler => (ctx) => {
   };
 };
 
+/**
+ * 장학금 탐색 — 한국장학재단 공공데이터(파일) 기반.
+ *
+ * 실시간 API 가 아니라 주기 갱신 파일이라 스냅샷 기준일 이후 신설된 공고는 없다.
+ * 원본에 과거 공고가 대량으로 섞여 있으므로(1,859건 중 1,808건이 마감) 생성 단계에서
+ * 한 번, 실행 시점에 또 한 번 마감분을 걸러낸다.
+ */
 const scholarshipSearch: Handler = (ctx) => {
-  const level = Number(ctx.params.incomeLevel ?? 0);
-  const grade = String(ctx.params.grade ?? "");
-  const region = String(ctx.params.region ?? "");
-  const majorHit = ["공학", "이공", "자연", "컴퓨터", "공대"].find((m) => ctx.query.includes(m));
+  const today = new Date().toISOString().slice(0, 10);
+  const q = ctx.query;
 
-  let list = [...SCHOLARSHIPS];
-  const total = list.length;
-  if (level > 0) list = list.filter((s) => s.incomeLevel === null || s.incomeLevel >= level);
-  if (grade) list = list.filter((s) => s.grades.includes(grade));
-  if (region) list = list.filter((s) => s.region === "전국" || s.region.includes(region));
-  if (majorHit) {
-    const m = list.filter((s) => s.majors.includes("전체") || s.majors.some((x) => ["공학", "이공", "자연과학"].includes(x)));
-    if (m.length) list = m;
+  const open = SCHOLARSHIPS_REAL.filter((s) => s.applyTo >= today);
+
+  let list = open;
+  const region = String(ctx.params.region ?? "");
+  if (region) {
+    const hit = list.filter(
+      (s) => s.region.includes(region) || s.provider.includes(region) || s.name.includes(region),
+    );
+    if (hit.length) list = hit;
   }
-  list = list.sort((a, b) => a.deadline.localeCompare(b.deadline));
+
+  const grade = String(ctx.params.grade ?? "");
+  if (grade) {
+    const n = grade.replace(/[^0-9]/g, "");
+    const hit = list.filter((s) => !s.grades || s.grades.includes(`대학${n}`) || s.grades.includes("제한없음"));
+    if (hit.length) list = hit;
+  }
+
+  const major = ["공학", "이공", "자연", "인문", "사회", "예체능", "의약", "교육"].find((m) => q.includes(m));
+  if (major) {
+    const hit = list.filter((s) => s.majors.includes(major) || s.majors.includes("제한없음"));
+    if (hit.length) list = hit;
+  }
+
+  list = list.slice(0, 8);
 
   const facts = list.length
     ? list
-        .map((s) => `- ${s.name} (${s.provider}) | ${s.amount} | 마감 ${s.deadline} | 조건: ${s.conditions.join(", ")}`)
+        .map(
+          (s) =>
+            `- ${s.name} (${s.provider}) | 지원: ${s.amount || "공고 참조"} | 모집 ${s.applyFrom}~${s.applyTo}` +
+            (s.income ? ` | 소득기준: ${s.income}` : "") +
+            (s.grade ? ` | 성적기준: ${s.grade}` : ""),
+        )
         .join("\n")
-    : "입력한 조건으로 지원 가능한 장학금을 찾지 못했습니다.";
+    : "조건에 맞는, 아직 모집 중인 장학금을 찾지 못했습니다.";
 
   return {
-    summary: `${total}개 중 ${list.length}개 후보 매칭`,
-    sources: ["한국장학재단", "공공데이터포털"],
-    data: { kind: "scholarship", items: list },
-    facts,
+    summary: `모집 중 ${open.length}건 중 ${list.length}건`,
+    sources: [SCHOLARSHIP_SOURCE],
+    data: { kind: "scholarshipReal", items: list, snapshot: SCHOLARSHIP_SNAPSHOT_DATE, openCount: open.length },
+    facts: [
+      facts,
+      `주의: 이 데이터는 ${SCHOLARSHIP_SNAPSHOT_DATE} 기준 공공데이터 파일이며 실시간이 아닙니다. ` +
+        `기준일 이후 새로 올라온 공고는 포함되지 않으므로, 반드시 한국장학재단·운영기관 공고로 최종 확인하도록 안내하세요.`,
+    ].join("\n"),
   };
 };
 
@@ -640,8 +681,38 @@ function guessAge(q: string): number | undefined {
   return n >= 15 && n <= 60 ? n : undefined;
 }
 
+/** 온통청년 청년정책 실시간 조회 */
+const youthPolicyLive: Handler = async (ctx) => {
+  const region = String(ctx.params.region ?? "");
+  const category = guessCategory(ctx.query);
+  const items = await fetchYouthPolicies({ category, region: region || undefined, size: 60 });
+
+  if (items === null) {
+    return {
+      summary: youthKeyAvailable() ? "온통청년 API 응답 없음" : "온통청년 API 키 미설정",
+      sources: ["온통청년 (한국고용정보원)"],
+      data: { kind: "youthPolicyLive", items: [], failed: true },
+      facts: youthKeyAvailable()
+        ? "온통청년 실시간 조회에 실패했습니다(응답 지연 또는 오류). 이 사실을 사용자에게 알리고 온통청년 사이트에서 직접 확인하도록 안내하세요."
+        : "온통청년 API 키가 설정되지 않아 조회할 수 없습니다. 이 사실을 사용자에게 알리세요.",
+    };
+  }
+
+  const list = items.slice(0, 6);
+  return {
+    summary: `${category ?? "전체"} 분야 ${items.length}건 중 ${list.length}건`,
+    sources: ["온통청년 (한국고용정보원 실시간 조회)"],
+    data: { kind: "youthPolicyLive", items: list, category },
+    facts: [
+      policyFacts(list),
+      "주의: 신청기간과 세부 자격은 정책마다 다르므로, 반드시 각 정책의 공고를 확인하도록 안내하세요. 여기 없는 금액·기간을 지어내지 마세요.",
+    ].join("\n"),
+  };
+};
+
 export const HANDLERS: Record<string, Handler> = {
   lh_notice_live: lhNoticeLive,
+  youth_policy_live: youthPolicyLive,
   youth_asset_match: youthAssetMatch,
   sh_housing_search: housingSearch("SH"),
   lh_housing_search: housingSearch("LH"),

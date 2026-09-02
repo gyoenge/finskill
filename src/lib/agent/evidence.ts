@@ -1,5 +1,6 @@
 import type { EvidenceCheck, TraceStep } from "@/lib/types";
-import { DEPOSITS, HOUSING, SCHOLARSHIPS, YOUTH_POLICIES } from "@/lib/data/seed";
+import { DEPOSITS, HOUSING, YOUTH_POLICIES } from "@/lib/data/seed";
+import { SCHOLARSHIPS_REAL } from "@/lib/data/seed/scholarships";
 
 /**
  * 근거 검증 (README §19 확장, §34 안전 설계의 검증 장치).
@@ -43,7 +44,8 @@ function extractNumbers(text: string): Num[] {
   return out;
 }
 
-const DATE_RE = /(20\d{2})[.\-/](\d{1,2})[.\-/](\d{1,2})/g;
+// 원문이 "2026. 3. 30." 처럼 공백을 넣는 경우가 있어 구분자 주변 공백을 허용한다.
+const DATE_RE = /(20\d{2})\s*[.\-/]\s*(\d{1,2})\s*[.\-/]\s*(\d{1,2})/g;
 
 /**
  * 날짜를 지운 텍스트.
@@ -65,8 +67,15 @@ function extractDates(text: string): string[] {
   return out;
 }
 
-// 뒤에 단위가 붙으면 날짜가 아니라 수치다. "3.6만원" 을 3월 6일로 읽으면 안 된다.
-const MD_RE = /(?<!\d)(\d{1,2})\s*(?:[/.]|월\s*)(\d{1,2})\s*일?(?![\d만원%억천점개])/g;
+/**
+ * 연도 없는 축약 날짜.
+ *
+ * 슬래시("9/20")와 "9월 20일" 만 인정하고 마침표 형식("9.20")은 제외한다.
+ * 한국어 금융·학사 텍스트에서 "2.5"(평점) "3.5"(금리) "4.5"(만점) 같은 소수가
+ * 훨씬 흔해서, 마침표까지 날짜로 보면 오탐이 걷잡을 수 없다.
+ * 연도가 붙은 "2026.09.20" 형태는 DATE_RE 가 따로 처리한다.
+ */
+const MD_RE = /(?<!\d)(\d{1,2})\s*(?:\/|월\s*)(\d{1,2})\s*일?(?![\d만원%억천점개])/g;
 
 /**
  * 연도 없는 날짜(9/17, 9월 17일)를 "MM.DD" 로 뽑는다.
@@ -103,7 +112,7 @@ function withoutMonthDays(text: string): string {
 /** 시드 데이터 전체의 고유명 — 이번 실행 결과에 없는데 답변에 나오면 환각 신호 */
 const ALL_ENTITY_NAMES: string[] = [
   ...HOUSING.map((h) => h.title),
-  ...SCHOLARSHIPS.map((s) => s.name),
+  ...SCHOLARSHIPS_REAL.map((s) => s.name),
   ...YOUTH_POLICIES.map((p) => p.name),
   ...DEPOSITS.map((d) => d.name),
 ];
