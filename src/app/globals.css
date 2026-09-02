@@ -35,8 +35,8 @@
 
   /* Surface */
   --color-surface: #ffffff;
-  --color-canvas: #fafcfb;
-  --color-line: #e7efec;
+  --color-canvas: #fdfdfd;
+  --color-line: #e6ebe9;
 
   /* Risk — 별도 상태색 (§29 Color) */
   --color-risk-low: #0da372;
