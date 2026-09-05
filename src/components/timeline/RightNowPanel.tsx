@@ -4,6 +4,7 @@ import Link from "next/link";
 import { daysUntil, type FinEvent } from "@/lib/domain/timeline";
 import type { TimelineState } from "@/lib/domain/state";
 import { nearestDeadline, rightNowFinEvents } from "@/lib/domain/selectors";
+import { useOpportunities } from "@/lib/domain/useOpportunities";
 
 /**
  * Right Now Panel (설계 §18~§20).
@@ -20,6 +21,8 @@ export function RightNowPanel({
 }) {
   const priorities = rightNowFinEvents(state, 3, now);
   const deadline = nearestDeadline(state, now);
+  const { ranked } = useOpportunities();
+  const topOpp = ranked[0];
 
   return (
     <aside className="space-y-4">
@@ -71,24 +74,35 @@ export function RightNowPanel({
         </section>
       )}
 
-      {/* 놓치면 아까워요 — Opportunity (Phase 2 실데이터 연동 예정) */}
-      <section className="card-soft overflow-hidden">
-        <div className="bg-fin-yellow-bg px-4 py-3">
-          <p className="text-[11.5px] font-bold text-[#a9781a]">놓치면 아까워요</p>
-        </div>
-        <div className="p-4">
-          <p className="text-[13.5px] font-bold text-ink-900">내 Timeline 맞춤 기회</p>
-          <p className="mt-1 text-[11.5px] leading-relaxed text-ink-500">
-            독립·취업 목표와 관련된 청년지원을 찾고 있어요.
-          </p>
-          <Link
-            href="/opportunities"
-            className="mt-3 inline-flex items-center gap-1 text-[12px] font-bold text-fin-green-700 hover:underline"
-          >
-            지금의 기회 보기 →
-          </Link>
-        </div>
-      </section>
+      {/* 놓치면 아까워요 — 개인화 랭킹 1위 기회 (설계 §20) */}
+      {topOpp && (
+        <section className="card-soft overflow-hidden">
+          <div className="bg-fin-yellow-bg px-4 py-3">
+            <p className="text-[11.5px] font-bold text-[#a9781a]">놓치면 아까워요</p>
+          </div>
+          <div className="p-4">
+            <div className="flex items-start justify-between gap-2">
+              <p className="line-clamp-2 text-[13.5px] font-bold text-ink-900">{topOpp.opp.title}</p>
+              {topOpp.dday !== null && (
+                <span className="shrink-0 rounded-md bg-fin-orange-bg px-1.5 py-0.5 text-[10.5px] font-bold text-fin-orange">
+                  D-{topOpp.dday}
+                </span>
+              )}
+            </div>
+            {topOpp.reasons[0] && (
+              <p className="mt-1 text-[11.5px] leading-relaxed text-ink-500">
+                {topOpp.reasons.slice(0, 2).join(" · ")}
+              </p>
+            )}
+            <Link
+              href="/opportunities"
+              className="mt-3 inline-flex items-center gap-1 text-[12px] font-bold text-fin-green-700 hover:underline"
+            >
+              지금의 기회 보기 →
+            </Link>
+          </div>
+        </section>
+      )}
     </aside>
   );
 }
