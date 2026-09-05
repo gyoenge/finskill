@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { Icon } from "@/components/Icon";
-import { Pio, PioSays, AssetIcon, eventAsset } from "@/components/Brand";
+import { Pio, PioSays, AssetIcon, Wordmark, eventAsset } from "@/components/Brand";
 import { useTimeline } from "@/components/timeline/TimelineStore";
 import {
   addLifeEvent,
@@ -52,6 +52,17 @@ const CURRENT_YEAR = new Date().getFullYear();
 
 type Draft = LifeEventDraft & { key: string; };
 
+function demoTimelineDrafts(): Draft[] {
+  const examples: LifeEventDraft[] = [
+    { type: "education", subtype: "enroll", title: "대학 입학", date: `${CURRENT_YEAR - 3}-03`, certainty: "confirmed" },
+    { type: "finance", subtype: "student-loan", title: "학자금대출", date: `${CURRENT_YEAR - 2}-03`, certainty: "confirmed" },
+    { type: "education", subtype: "graduate", title: "졸업", date: `${CURRENT_YEAR + 1}-02`, certainty: "expected" },
+    { type: "career", subtype: "employ", title: "취업", date: `${CURRENT_YEAR + 1}-08`, certainty: "expected" },
+    { type: "living", subtype: "independence", title: "독립", date: `${CURRENT_YEAR + 2}-03`, certainty: "goal" },
+  ];
+  return examples.map((draft) => ({ ...draft, key: crypto.randomUUID() }));
+}
+
 export default function OnboardingPage() {
   return <Suspense fallback={<p>불러오는 중…</p>}><OnboardingInner /></Suspense>;
 }
@@ -61,7 +72,7 @@ function OnboardingInner() {
   const params = useSearchParams();
   const requestedAdding = params.get("mode") === "add";
   const adding = requestedAdding && ready && Boolean(state.user) && !state.isDemo;
-  const [step, setStep] = useState<1 | 2 | 3>(requestedAdding ? 2 : 1);
+  const [step, setStep] = useState<0 | 1 | 2 | 3>(requestedAdding ? 2 : 0);
 
   useEffect(() => {
     if (ready && requestedAdding && !adding) {
@@ -121,8 +132,10 @@ function OnboardingInner() {
 
   return (
     <div className="onboarding-shell space-y-6">
-      <div className="onboarding-intro"><Image src="/brand/20fin-v1/landscape-timeline-mobile.png" fill sizes="(max-width: 767px) 100vw, 800px" alt="" className="onboarding-landscape" /><div><strong>{adding ? "나의 이야기에 다음 계획을 더해요." : "나의 20대, 함께 그려볼까요?"}</strong><p>{adding ? "지금까지의 계획은 그대로 두고 새로운 이벤트를 추가해요." : "정확한 날짜를 몰라도 괜찮아요. 하고 싶은 일부터 시작해요."}</p></div><Pio size={88} mood={step === 3 ? "celebrate" : "guide"} /></div>
-      <StepDots step={step} />
+      {step === 0 ? <OnboardingWelcome onStart={() => setStep(1)} /> : <>
+        <div className="onboarding-intro"><Image src="/brand/20fin-v1/landscape-timeline-mobile.png" fill sizes="(max-width: 767px) 100vw, 800px" alt="" className="onboarding-landscape" /><div><strong>{adding ? "나의 이야기에 다음 계획을 더해요." : "나의 20대, 함께 그려볼까요?"}</strong><p>{adding ? "지금까지의 계획은 그대로 두고 새로운 이벤트를 추가해요." : "정확한 날짜를 몰라도 괜찮아요. 하고 싶은 일부터 시작해요."}</p></div><Pio size={88} mood={step === 3 ? "celebrate" : "guide"} /></div>
+        <StepDots step={step} />
+      </>}
 
       {step === 1 && (
         <div className="space-y-5">
@@ -188,6 +201,19 @@ function OnboardingInner() {
               지금까지 있었던 일과 앞으로 계획하는 일을 추가해주세요. 정확한 날짜를 몰라도 괜찮아요.
             </p>
           </header>
+
+          {drafts.length === 0 && (
+            <aside className="onboarding-demo-card">
+              <Pio size={58} mood="guide" />
+              <div>
+                <strong>어떻게 시작할지 막막한가요?</strong>
+                <p>졸업부터 취업, 독립까지 이어지는 예시를 먼저 채워볼 수 있어요.</p>
+              </div>
+              <button type="button" onClick={() => setDrafts(demoTimelineDrafts())}>
+                예시로 채워보기
+              </button>
+            </aside>
+          )}
 
           <EventAdder onAdd={(d) => setDrafts((ds) => [...ds, { ...d, key: crypto.randomUUID() }])} />
 
@@ -289,6 +315,28 @@ function OnboardingInner() {
       )}
     </div>
   );
+}
+
+function OnboardingWelcome({ onStart }: { onStart: () => void }) {
+  return <section className="onboarding-welcome">
+    <div className="welcome-brand"><Wordmark size={40} /><span>My 20s, Better Finance.</span></div>
+    <div className="welcome-visual">
+      <Image src="/brand/20fin-v1/landscape-timeline-desktop.png" fill priority sizes="(max-width: 767px) 100vw, 800px" alt="" />
+      <Pio size={142} mood="guide" />
+    </div>
+    <div className="welcome-copy">
+      <p className="eyebrow">FINANCE FOR WHAT’S NEXT</p>
+      <h1>나의 20대,<br />더 나은 내일로 이어지도록.</h1>
+      <p>졸업, 취업, 독립처럼 삶의 중요한 순간을 그리면<br className="welcome-desktop-break" /> 지금 필요한 금융 준비를 피오가 함께 찾아드려요.</p>
+    </div>
+    <ul className="welcome-benefits" aria-label="20FIN 주요 기능">
+      <li><span>01</span><strong>내 일정 중심</strong><small>삶의 이벤트를 시간순으로</small></li>
+      <li><span>02</span><strong>지금 할 일만</strong><small>복잡한 금융정보를 간단하게</small></li>
+      <li><span>03</span><strong>나에게 맞는 기회</strong><small>놓치기 쉬운 지원정보까지</small></li>
+    </ul>
+    <button type="button" className="welcome-start" onClick={onStart}>시작하기 <span aria-hidden="true">→</span></button>
+    <p className="welcome-note">약 1분이면 나의 첫 타임라인을 만들 수 있어요.</p>
+  </section>;
 }
 
 /* ------------------------- Event 추가 폼 ------------------------- */
