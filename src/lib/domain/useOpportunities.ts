@@ -55,6 +55,8 @@ export function useOpportunities() {
     const ctx: UserCtx = {
       age: state.user ? ageOf(state.user.birthYear) : null,
       region,
+      currentStatus: state.user?.currentStatus,
+      livingType: state.user?.livingType,
       lifeSubtypes: state.lifeEvents.map((e) => e.subtype),
       futureTypes: [...new Set(state.lifeEvents.filter((e) => e.status !== "past").map((e) => e.type))],
     };
