@@ -2,7 +2,6 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { EMPTY_STATE, recomputeStatuses, type TimelineState } from "@/lib/domain/state";
-import { demoState } from "@/lib/domain/demo";
 
 /**
  * 20FIN 상태 저장소 (localStorage).
@@ -40,9 +39,9 @@ export function TimelineProvider({ children }: { children: React.ReactNode }) {
   const stateRef = useRef<TimelineState>(EMPTY_STATE);
 
   useEffect(() => {
-    // 저장된 상태가 없으면 데모 시드로 시작한다 (온보딩 미완료 방문자에게 즉시 Timeline 노출).
+    // 저장된 상태가 없으면 빈 상태로 시작하고 AppShell이 온보딩으로 안내한다.
     const stored = readStored();
-    const initial = stored ? recomputeStatuses(stored) : demoState();
+    const initial = stored ? recomputeStatuses(stored) : EMPTY_STATE;
     stateRef.current = initial;
     setState(initial);
     setReady(true);
@@ -69,7 +68,7 @@ export function TimelineProvider({ children }: { children: React.ReactNode }) {
   const getState = useCallback(() => stateRef.current, []);
 
   const reset = useCallback(() => {
-    const next = demoState();
+    const next = EMPTY_STATE;
     stateRef.current = next;
     try {
       window.localStorage.removeItem(KEY);
