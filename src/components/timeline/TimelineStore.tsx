@@ -7,9 +7,9 @@ import { demoState } from "@/lib/domain/demo";
 /**
  * 20FIN 상태 저장소 (localStorage).
  *
- * StoreProvider(FinSkill)와 같은 패턴이되 20FIN Timeline 상태를 담는다.
- * 마이그레이션 기간에는 두 프로바이더가 공존하고, 구 FinSkill 페이지가
- * 모두 제거되면 StoreProvider 를 걷어낸다.
+ * Vercel 서버리스는 파일시스템이 읽기 전용이라 서버에 상태를 둘 수 없다.
+ * 그래서 사용자 상태(User·Life Event·Fin Event·대화)는 전부 브라우저에 두고
+ * 서버는 무상태로 유지한다. 나중에 Supabase 로 옮기려면 이 파일만 교체하면 된다.
  */
 
 const KEY = "20fin.state.v1";

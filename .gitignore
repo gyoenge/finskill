@@ -5,5 +5,5 @@ out
 .env.local
 next-env.d.ts
 *.tsbuildinfo
-node_modules/.cache/finskill
+node_modules/.cache/20fin
 .vercel

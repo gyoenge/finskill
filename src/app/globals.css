@@ -1,11 +1,12 @@
 @import "tailwindcss";
 
 /**
- * FinSkill Design System (README §29)
- * Simple / Friendly / Trustworthy / Modular / Financial + AI
+ * 20FIN Design System (docs/design-spec.md §11·§55)
+ * Young · Calm · Optimistic · Simple
+ * (brand/accent 토큰은 배지·보조색으로 일부 유지, 주요 팔레트는 아래 fin-* 이다)
  */
 @theme {
-  /* Primary — FinSkill Teal (로고 왼쪽 로봇 면) */
+  /* Teal — 배지·보조 강조색 (일부 컴포넌트에서 유지) */
   --color-brand-50: #e8f8f2;
   --color-brand-100: #cdf1e5;
   --color-brand-200: #9de5cd;
@@ -17,7 +18,7 @@
   --color-brand-800: #0a6a4e;
   --color-brand-900: #085440;
 
-  /* Secondary — FinSkill Blue (로고 오른쪽 ₩ 면) */
+  /* Blue — '예상' 배지 등 보조색 (accent) */
   --color-accent-50: #eaf2ff;
   --color-accent-100: #d6e6ff;
   --color-accent-200: #b3d0ff;

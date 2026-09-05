@@ -8,7 +8,7 @@ import Anthropic from "@anthropic-ai/sdk";
  * (Skill Routing / Skill Gap / Trace 는 키 없이도 동작해야 하므로 강제하지 않는다.)
  */
 
-export const MODEL = process.env.FINSKILL_MODEL ?? "claude-opus-5";
+export const MODEL = process.env.TWENTYFIN_MODEL ?? "claude-opus-5";
 
 let client: Anthropic | null = null;
 
@@ -59,7 +59,7 @@ export async function complete(opts: {
       .join("\n")
       .trim();
   } catch (err) {
-    console.error("[finskill] LLM 호출 실패 — fallback 으로 전환합니다.", err);
+    console.error("[20fin] LLM 호출 실패 — fallback 으로 전환합니다.", err);
     return null;
   }
 }
@@ -101,7 +101,7 @@ export async function completeStream(
       .join("\n")
       .trim();
   } catch (err) {
-    console.error("[finskill] LLM 스트리밍 실패 — fallback 으로 전환합니다.", err);
+    console.error("[20fin] LLM 스트리밍 실패 — fallback 으로 전환합니다.", err);
     return null;
   }
 }

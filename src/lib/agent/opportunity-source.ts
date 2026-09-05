@@ -1,7 +1,7 @@
 /**
  * 20FIN 지금의 기회 — 데이터 소스 통합 (서버 전용).
  *
- * 기존 FinSkill 백엔드(청년정책·LH·장학금)를 Backend Tool 로 재사용해(설계 §36)
+ * 기존 백엔드(청년정책·LH·장학금)를 Backend Tool 로 재사용해(설계 §36)
  * 도메인 타입 Opportunity 로 정규화한다. 개인화 랭킹은 클라이언트에서 한다
  * (사용자 Context 가 브라우저 localStorage 에 있으므로).
  */

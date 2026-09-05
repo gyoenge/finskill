@@ -1,8 +1,8 @@
 /**
  * 20FIN 사용자 상태와 순수 상태전이 함수.
  *
- * FinSkill 과 동일하게 서버는 무상태로 두고 상태는 브라우저 localStorage 에 둔다.
- * (StoreProvider 주석 참고 — Vercel 서버리스는 파일시스템이 읽기 전용)
+ * 서버는 무상태로 두고 상태는 브라우저 localStorage 에 둔다.
+ * (Vercel 서버리스는 파일시스템이 읽기 전용이므로 서버에 상태를 둘 수 없다.)
  * 나중에 Supabase 로 옮기려면 TimelineStore 프로바이더만 교체하면 된다.
  */
 

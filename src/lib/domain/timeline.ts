@@ -4,9 +4,8 @@
  * 설계 문서(docs/design-spec.md) §7·§9 의 데이터 모델을 구현한다.
  * 핵심 흐름: Life Event → Fin Event → Right Timing → Financial Action.
  *
- * FinSkill 의 Skill/Agent 타입(src/lib/types.ts)과는 별개다.
- * 기존 Skill 은 Backend Tool 로만 재사용하고(설계 §36), 사용자에게 노출되는
- * 도메인은 이 파일의 Timeline 모델이 담당한다.
+ * 청년정책·LH·장학금 같은 기존 데이터 소스는 Backend Tool 로만 재사용하고(설계 §36),
+ * 사용자에게 노출되는 도메인은 이 파일의 Timeline 모델이 담당한다.
  */
 
 /** 현재 상태 (온보딩 Step 1) */
