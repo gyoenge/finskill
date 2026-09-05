@@ -1,8 +1,8 @@
 {
-  "name": "finskill",
+  "name": "20fin",
   "version": "0.1.0",
   "private": true,
-  "description": "FinSkill — 필요한 금융 능력을 연결하다. AI 금융 Skill Marketplace & Personal Agent Platform",
+  "description": "20FIN — 20대의 다음을 준비하는 AI 금융 Agent. Life Event를 시간축으로 이해하는 Timeline-aware 금융 서비스",
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build",

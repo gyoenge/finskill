@@ -1,225 +1,281 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useMemo, useState } from "react";
 import { Icon } from "@/components/Icon";
-import { useState, useTransition } from "react";
-import type { Category, FinKit, OnboardingProfile, PersonaProfile } from "@/lib/types";
-import { CATEGORY_LABEL, ONBOARDING_OPTIONS, PERSONA_MAP } from "@/lib/data/personas";
-import { SKILL_MAP } from "@/lib/data/skills";
-import { Button, Card } from "@/components/ui";
-import { useStore } from "@/components/StoreProvider";
-import { matchPersona, recommendKit } from "@/lib/recommend";
-import * as ops from "@/lib/state-ops";
-
-/** Agent 카드에 표시할 모델 이름 (실제 호출 모델은 서버가 결정한다) */
-const MODEL_LABEL = "claude-opus-5";
+import { Pio, PioSays, AssetIcon, eventAsset } from "@/components/Brand";
+import { useTimeline } from "@/components/timeline/TimelineStore";
+import {
+  addLifeEvent,
+  birthYearFromAge,
+  initFromOnboarding,
+  type LifeEventDraft,
+} from "@/lib/domain/state";
+import { generateFinEvents } from "@/lib/domain/fin-events";
+import {
+  LIFE_EVENT_CATALOG,
+  parseEventDate,
+  type Certainty,
+  type LifeEventType,
+  type LivingType,
+  type UserStatus,
+} from "@/lib/domain/timeline";
 
 /**
- * Flow A: 처음 사용하는 사용자 (README §28)
- * Persona 설정 → 추천 FinKit → Skill 확인 → Agent 자동 생성 → Chat 시작
+ * 화면 1·2 — Onboarding + Timeline Onboarding (설계 §7·§8·§12).
+ * Step 1 현재 상태 → Step 2 내 20대 그리기 → Step 3 Aha Moment(Fin Event 생성).
  */
+
+const STATUS_OPTIONS: { value: UserStatus; label: string; }[] = [
+  { value: "student", label: "대학생" },
+  { value: "job_seeker", label: "취업 준비" },
+  { value: "employee", label: "직장인" },
+  { value: "freelancer", label: "프리랜서" },
+  { value: "other", label: "기타" },
+];
+
+const LIVING_OPTIONS: { value: LivingType; label: string; }[] = [
+  { value: "family", label: "본가" },
+  { value: "dorm", label: "기숙사" },
+  { value: "alone", label: "자취" },
+  { value: "other", label: "기타" },
+];
+
+const CERTAINTY_OPTIONS: { value: Certainty; label: string; mark: string; }[] = [
+  { value: "confirmed", label: "확정", mark: "✓" },
+  { value: "expected", label: "예상", mark: "◇" },
+  { value: "goal", label: "목표", mark: "☆" },
+];
+
+const CURRENT_YEAR = new Date().getFullYear();
+
+type Draft = LifeEventDraft & { key: string; };
+
 export default function OnboardingPage() {
+  return <Suspense fallback={<p>불러오는 중…</p>}><OnboardingInner /></Suspense>;
+}
+function OnboardingInner() {
   const router = useRouter();
-  const { state, update } = useStore();
-  const [step, setStep] = useState<1 | 2>(1);
-  const [pending, start] = useTransition();
-  const [error, setError] = useState("");
+  const { state, update, ready } = useTimeline();
+  const params = useSearchParams();
+  const adding = params.get("mode") === "add";
+  const [step, setStep] = useState<1 | 2 | 3>(adding ? 2 : 1);
 
-  const [form, setForm] = useState<OnboardingProfile>({
-    age: "23~26세",
-    status: "대학생",
-    region: "서울",
-    housing: "자취",
-    interests: ["housing", "wealth", "education"],
-    knowledge: "기초",
-    finance: {},
-  });
+  // Step 1
+  const [age, setAge] = useState(25);
+  const [status, setStatus] = useState<UserStatus>("job_seeker");
+  const [living, setLiving] = useState<LivingType>("family");
+  const [region, setRegion] = useState("서울");
 
-  const [result, setResult] = useState<{
-    persona: PersonaProfile;
-    reason: string;
-    kit: FinKit;
-  } | null>(null);
+  // Step 2
+  const [drafts, setDrafts] = useState<Draft[]>([]);
 
-  const toggleInterest = (c: Category) =>
-    setForm((f) => ({
-      ...f,
-      interests: f.interests.includes(c) ? f.interests.filter((x) => x !== c) : [...f.interests, c],
+  const sortedDrafts = useMemo(
+    () =>
+      [...drafts].sort(
+        (a, b) =>
+          (parseEventDate(a.date)?.getTime() ?? Infinity) - (parseEventDate(b.date)?.getTime() ?? Infinity),
+      ),
+    [drafts],
+  );
+
+  // Aha Moment 미리보기 — 입력한 Life Event 로 생성될 Fin Event 수
+  const previewFinCount = useMemo(() => {
+    const userId = "me";
+    return sortedDrafts.reduce((sum, d) => {
+      const le = { ...d, id: "preview", userId, source: "user" as const, status: "future" as const };
+      return sum + generateFinEvents(le).length;
+    }, 0);
+  }, [sortedDrafts]);
+
+  const removeDraft = (key: string) => setDrafts((ds) => ds.filter((d) => d.key !== key));
+
+  const finish = () => {
+    const user = {
+      id: "me",
+      birthYear: birthYearFromAge(age),
+      currentStatus: status,
+      region: region.trim() || undefined,
+      livingType: living,
+    };
+    const cleaned: LifeEventDraft[] = sortedDrafts.map((d) => ({
+      type: d.type,
+      subtype: d.subtype,
+      title: d.title,
+      date: d.date,
+      certainty: d.certainty,
     }));
-
-  // Persona 매칭은 순수 계산이라 서버가 필요 없다 (§9 규칙 기반).
-  const submitProfile = () => {
-    setError("");
-    const { personaId, reason } = matchPersona(form);
-    const kit = recommendKit(personaId);
-    update((s) => ops.setProfile(s, form, personaId));
-    setResult({ persona: PERSONA_MAP[personaId], reason, kit });
-    setStep(2);
+    if (adding) update((existing) => cleaned.reduce((next, draft) => addLifeEvent(next, draft), existing));
+    else update(() => initFromOnboarding(user, cleaned));
+    router.push("/");
   };
 
-  const createAgent = () =>
-    start(() => {
-      if (!result) return;
-      setError("");
-      // 새 Agent id 를 즉시 알아야 이동할 수 있으므로, 상태 전이를 먼저 계산한 뒤 반영한다.
-      // (update 의 갱신 함수는 React 가 나중에 실행하므로 그 안에서 꺼낸 값은 여기서 읽을 수 없다.)
-      const { state: next, agent } = ops.createAgent(state, {
-        name: result.persona.defaultAgentName,
-        persona: result.persona.summary,
-        instructions: result.persona.defaultInstructions,
-        model: MODEL_LABEL,
-        skillIds: result.kit.skillIds,
-      });
-      update(() => next);
-      router.push(`/agents/${agent.id}/chat`);
-    });
-
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
-      <header className="text-center">
-        <p className="text-[12px] font-bold tracking-widest text-brand-600">DISCOVER · SNAP · SOLVE</p>
-        <h1 className="mt-1.5 text-[24px] font-extrabold tracking-tight text-ink-900">
-          {step === 1 ? "어떤 금융 능력이 필요한가요?" : `${result?.persona.name} Persona 로 시작합니다`}
-        </h1>
-        <p className="mt-1.5 text-[13px] text-ink-500">
-          {step === 1
-            ? "몇 가지만 알려주시면 필요한 Skill 을 골라드립니다."
-            : result?.reason}
-        </p>
-      </header>
+    <div className="onboarding-shell space-y-6">
+      <div className="onboarding-intro"><Image src="/brand/20fin-v1/landscape-timeline-mobile.png" fill sizes="(max-width: 767px) 100vw, 800px" alt="" className="onboarding-landscape" /><div><strong>{adding ? "나의 이야기에 다음 계획을 더해요." : "나의 20대, 함께 그려볼까요?"}</strong><p>{adding ? "지금까지의 계획은 그대로 두고 새로운 이벤트를 추가해요." : "정확한 날짜를 몰라도 괜찮아요. 하고 싶은 일부터 시작해요."}</p></div><Pio size={88} mood={step === 3 ? "celebrate" : "guide"} /></div>
+      <StepDots step={step} />
 
       {step === 1 && (
-        <Card className="space-y-5 p-5">
-          <Field label="연령대">
-            <Choices options={[...ONBOARDING_OPTIONS.age]} value={form.age} onChange={(v) => setForm({ ...form, age: v })} />
-          </Field>
-          <Field label="현재 상태">
-            <Choices options={[...ONBOARDING_OPTIONS.status]} value={form.status} onChange={(v) => setForm({ ...form, status: v })} />
-          </Field>
-          <Field label="거주 지역">
-            <Choices options={[...ONBOARDING_OPTIONS.region]} value={form.region} onChange={(v) => setForm({ ...form, region: v })} />
-          </Field>
-          <Field label="주거 형태">
-            <Choices options={[...ONBOARDING_OPTIONS.housing]} value={form.housing} onChange={(v) => setForm({ ...form, housing: v })} />
-          </Field>
-          <Field label="주요 금융 관심사 (복수 선택)">
-            <div className="flex flex-wrap gap-1.5">
-              {(Object.keys(CATEGORY_LABEL) as Category[]).map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => toggleInterest(c)}
-                  className={`rounded-xl border px-3 py-1.5 text-[12.5px] font-medium transition ${
-                    form.interests.includes(c)
-                      ? "border-brand-500 bg-brand-50 text-brand-700"
-                      : "border-line bg-surface text-ink-500 hover:border-brand-300"
-                  }`}
-                >
-                  {CATEGORY_LABEL[c]}
-                </button>
-              ))}
-            </div>
-          </Field>
-          <Field label="금융 지식 수준">
-            <Choices
-              options={[...ONBOARDING_OPTIONS.knowledge]}
-              value={form.knowledge}
-              onChange={(v) => setForm({ ...form, knowledge: v })}
-            />
-          </Field>
-
-          <Field label="금융 정보 (선택)">
-            <p className="mb-2 text-[11.5px] leading-relaxed text-ink-400">
-              한 번 입력해두면 소비 분석·목표저축 Skill 이 매번 되묻지 않습니다.
-              이 브라우저에만 저장되며 서버로 전송되지 않습니다.
-            </p>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-              {(
-                [
-                  ["income", "월 수입"],
-                  ["rent", "월세/주거비"],
-                  ["food", "식비"],
-                  ["transport", "교통비"],
-                  ["etc", "기타 지출"],
-                ] as const
-              ).map(([key, label]) => (
-                <label key={key} className="block">
-                  <span className="mb-1 block text-[11.5px] text-ink-500">{label}</span>
-                  <span className="relative block">
-                    <input
-                      inputMode="numeric"
-                      value={form.finance?.[key] ? String(form.finance[key]! / 10000) : ""}
-                      onChange={(e) => {
-                        const man = Number(e.target.value.replace(/[^0-9]/g, ""));
-                        setForm((f) => ({
-                          ...f,
-                          finance: { ...f.finance, [key]: man ? man * 10000 : undefined },
-                        }));
-                      }}
-                      placeholder="0"
-                      className="w-full rounded-xl border border-line bg-surface py-2 pl-3 pr-10 text-[13px] outline-none focus:border-brand-400"
-                    />
-                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[11.5px] text-ink-400">
-                      만원
-                    </span>
-                  </span>
-                </label>
-              ))}
-            </div>
-          </Field>
-
-          {error && <p className="text-[12px] text-risk-high">{error}</p>}
-          <Button size="lg" className="w-full" onClick={submitProfile} disabled={pending}>
-            {pending ? "분석 중…" : "내게 맞는 Skill 찾기"}
-          </Button>
-        </Card>
+        <div className="space-y-5">
+          <header className="text-center">
+            <h1 className="text-[24px] font-extrabold tracking-tight text-fin-navy">지금의 나를 알려주세요.</h1>
+            <p className="mt-1.5 text-[13px] text-ink-500">최소한의 정보만 받아요. 금융정보는 나중에 필요할 때 물어볼게요.</p>
+          </header>
+          <div className="card-soft space-y-5 p-5">
+            <Field label="현재 나이">
+              <div className="flex items-center gap-3">
+                <input
+                  aria-label="현재 나이"
+                  type="range"
+                  min={18}
+                  max={35}
+                  value={age}
+                  onChange={(e) => setAge(Number(e.target.value))}
+                  className="flex-1 accent-[var(--color-fin-green-500)]"
+                />
+                <span className="w-14 shrink-0 rounded-lg bg-fin-green-50 py-1 text-center text-[14px] font-extrabold text-fin-green-700">
+                  {age}세
+                </span>
+              </div>
+            </Field>
+            <Field label="현재 상태">
+              <Choices
+                options={STATUS_OPTIONS.map((o) => o.label)}
+                value={STATUS_OPTIONS.find((o) => o.value === status)!.label}
+                onChange={(label) => setStatus(STATUS_OPTIONS.find((o) => o.label === label)!.value)}
+              />
+            </Field>
+            <Field label="현재 거주">
+              <Choices
+                options={LIVING_OPTIONS.map((o) => o.label)}
+                value={LIVING_OPTIONS.find((o) => o.value === living)!.label}
+                onChange={(label) => setLiving(LIVING_OPTIONS.find((o) => o.label === label)!.value)}
+              />
+            </Field>
+            <Field label="거주 지역">
+              <input
+                aria-label="거주 지역"
+                value={region}
+                onChange={(e) => setRegion(e.target.value)}
+                placeholder="예: 서울"
+                className="w-40 rounded-xl border border-line bg-surface px-3 py-2 text-[13px] outline-none focus:border-fin-green-500"
+              />
+            </Field>
+            <button
+              onClick={() => setStep(2)}
+              className="w-full rounded-xl bg-fin-green-500 py-3 text-[14px] font-bold text-white transition hover:bg-fin-green-600"
+            >
+              내 20대 그리기 →
+            </button>
+          </div>
+        </div>
       )}
 
-      {step === 2 && result && (
-        <div className="space-y-4">
-          <Card className="p-5">
-            <div className="flex items-start gap-3">
-              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-brand-600"><Icon name={result.kit.icon as never} size={28} /></span>
-              <div>
-                <p className="text-[16px] font-bold text-ink-900">{result.kit.name}</p>
-                <p className="text-[12.5px] text-ink-500">{result.kit.tagline}</p>
-              </div>
-            </div>
-            <p className="mt-3 rounded-xl bg-canvas px-3 py-2.5 text-[12.5px] leading-relaxed text-ink-700">
-              {result.kit.reason}
+      {step === 2 && (
+        <div className="space-y-5">
+          <header className="text-center">
+            <h1 className="text-[24px] font-extrabold tracking-tight text-fin-navy">당신의 20대를 그려주세요.</h1>
+            <p className="mt-1.5 text-[13px] text-ink-500">
+              지금까지 있었던 일과 앞으로 계획하는 일을 추가해주세요. 정확한 날짜를 몰라도 괜찮아요.
             </p>
-            <ul className="mt-3 space-y-1.5">
-              {result.kit.skillIds.map((id) => {
-                const s = SKILL_MAP[id];
-                if (!s) return null;
-                return (
-                  <li key={id} className="snap-in flex items-center gap-2.5 rounded-xl border border-line px-3 py-2">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand-50 text-brand-600"><Icon name={s.icon as never} size={16} /></span>
-                    <div className="min-w-0">
-                      <p className="truncate text-[12.5px] font-semibold text-ink-900">{s.name}</p>
-                      <p className="truncate text-[11px] text-ink-400">{s.tagline}</p>
+          </header>
+
+          <EventAdder onAdd={(d) => setDrafts((ds) => [...ds, { ...d, key: crypto.randomUUID() }])} />
+
+          {sortedDrafts.length > 0 ? (
+            <div className="card-soft p-4">
+              <p className="mb-2 text-[12.5px] font-bold text-ink-700">
+                추가한 이벤트 {sortedDrafts.length}개
+              </p>
+              <ul className="space-y-1.5">
+                {sortedDrafts.map((d) => (
+                  <li
+                    key={d.key}
+                    className="flex items-center gap-2.5 rounded-xl bg-canvas px-3 py-2"
+                  >
+                    <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-fin-green-50 text-fin-green-600">
+                      <Icon name={LIFE_EVENT_CATALOG[d.type].icon as never} size={16} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[13px] font-semibold text-ink-900">{d.title}</p>
+                      <p className="text-[11px] text-ink-400">
+                        {d.date ? d.date.replaceAll("-", ".") : "미정"} ·{" "}
+                        {CERTAINTY_OPTIONS.find((c) => c.value === d.certainty)?.label}
+                      </p>
                     </div>
+                    <button
+                      onClick={() => removeDraft(d.key)}
+                      className="shrink-0 text-[12px] text-ink-400 hover:text-fin-orange"
+                    >
+                      삭제
+                    </button>
                   </li>
-                );
-              })}
-            </ul>
-          </Card>
-
-          <Card className="p-5">
-            <p className="text-[13px] font-bold text-ink-900">자동으로 만들어질 Agent</p>
-            <p className="mt-1.5 text-[13px] text-brand-700">{result.persona.defaultAgentName}</p>
-            <p className="mt-1 text-[12px] leading-relaxed text-ink-500">{result.persona.defaultInstructions}</p>
-          </Card>
-
-          {error && <p className="text-[12px] text-risk-high">{error}</p>}
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <PioSays>졸업·취업·독립처럼 앞으로 계획한 일을 하나씩 추가해 보세요. 지난 일도 좋아요.</PioSays>
+          )}
 
           <div className="flex gap-2">
-            <Button variant="secondary" size="lg" onClick={() => setStep(1)} disabled={pending}>
-              다시 설정
-            </Button>
-            <Button size="lg" className="flex-1" onClick={createAgent} disabled={pending}>
-              {pending ? "Agent 생성 중…" : "Skill 장착하고 에이전트 시작하기"}
-            </Button>
+            <button
+              onClick={() => adding ? router.push("/") : setStep(1)}
+              className="rounded-xl border border-line px-4 py-3 text-[13px] font-semibold text-ink-500 hover:bg-canvas"
+            >
+              이전
+            </button>
+            <button
+              onClick={() => setStep(3)}
+              disabled={sortedDrafts.length === 0}
+              className="flex-1 rounded-xl bg-fin-green-500 py-3 text-[14px] font-bold text-white transition hover:bg-fin-green-600 disabled:cursor-not-allowed disabled:bg-ink-300"
+            >
+              {sortedDrafts.length === 0 ? "이벤트를 하나 이상 추가해주세요" : "다 그렸어요 →"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {step === 3 && (
+        <div className="space-y-5">
+          <div className="flex flex-col items-center text-center">
+            <Pio size={80} mood="celebrate" />
+            <h1 className="mt-3 text-[22px] font-extrabold tracking-tight text-fin-navy">
+              앞으로의 20FIN을 준비했어요.
+            </h1>
+            <p className="mt-1.5 text-[13px] text-ink-500">
+              입력한 {sortedDrafts.length}개의 이벤트를 기반으로 앞으로 챙겨야 할 금융 체크포인트{" "}
+              <b className="text-fin-green-700">{previewFinCount}개</b>를 만들었습니다.
+            </p>
+          </div>
+
+          <div className="card-soft p-5">
+            <ol className="relative space-y-3 pl-4">
+              {sortedDrafts.map((d) => (
+                <li key={d.key} className="relative">
+                  <span className="absolute -left-4 top-1.5 h-2 w-2 rounded-full bg-fin-green-400" />
+                  <p className="text-[13px] font-bold text-ink-900">
+                    {d.date ? d.date.replaceAll("-", ".") : "미정"} · {d.title}
+                  </p>
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              onClick={() => setStep(2)}
+              className="rounded-xl border border-line px-4 py-3 text-[13px] font-semibold text-ink-500 hover:bg-canvas"
+            >
+              이전
+            </button>
+            <button
+              disabled={!ready || (adding && !state.user)}
+              onClick={finish}
+              className="flex-1 rounded-xl bg-fin-green-500 py-3 text-[14px] font-bold text-white transition hover:bg-fin-green-600"
+            >
+              나의 20대 보기 →
+            </button>
           </div>
         </div>
       )}
@@ -227,10 +283,134 @@ export default function OnboardingPage() {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+/* ------------------------- Event 추가 폼 ------------------------- */
+
+function EventAdder({ onAdd }: { onAdd: (d: LifeEventDraft) => void; }) {
+  const [type, setType] = useState<LifeEventType>("education");
+  const [subtype, setSubtype] = useState<string>(LIFE_EVENT_CATALOG.education.options[0].subtype);
+  const [year, setYear] = useState(CURRENT_YEAR);
+  const [month, setMonth] = useState<number | "">("");
+  const [certainty, setCertainty] = useState<Certainty>("confirmed");
+
+  const cat = LIFE_EVENT_CATALOG[type];
+  const option = cat.options.find((o) => o.subtype === subtype) ?? cat.options[0];
+
+  const pickType = (t: LifeEventType) => {
+    setType(t);
+    setSubtype(LIFE_EVENT_CATALOG[t].options[0].subtype);
+  };
+
+  const add = () => {
+    const date = month ? `${year}-${String(month).padStart(2, "0")}` : `${year}`;
+    onAdd({ type, subtype, title: option.title, date, certainty });
+    setMonth("");
+  };
+
+  return (
+    <div className="card-soft space-y-4 p-4">
+      <div className="category-selector flex flex-wrap gap-1.5">
+        {(Object.keys(LIFE_EVENT_CATALOG) as LifeEventType[]).map((t) => (
+          <button
+            key={t}
+            aria-pressed={type === t}
+            onClick={() => pickType(t)}
+            className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-[12.5px] font-semibold transition ${type === t
+                ? "border-fin-green-500 bg-fin-green-50 text-fin-green-700"
+                : "border-line bg-surface text-ink-500 hover:border-fin-green-200"
+              }`}
+          >
+            <AssetIcon name={eventAsset({ type: t, subtype: "" })} size={42} />
+            {{ education: "학업", career: "커리어", living: "주거", finance: "금융", goal: "목표" }[t]}
+          </button>
+        ))}
+      </div>
+
+      <Choices
+        options={cat.options.map((o) => o.title)}
+        value={option.title}
+        onChange={(title) => setSubtype(cat.options.find((o) => o.title === title)!.subtype)}
+      />
+
+      <div className="flex flex-wrap items-end gap-2">
+        <label className="block">
+          <span className="mb-1 block text-[11.5px] text-ink-500">연도</span>
+          <select
+            value={year}
+            onChange={(e) => setYear(Number(e.target.value))}
+            className="rounded-xl border border-line bg-surface px-3 py-2 text-[13px] outline-none focus:border-fin-green-500"
+          >
+            {Array.from({ length: 16 }, (_, i) => CURRENT_YEAR - 6 + i).map((y) => (
+              <option key={y} value={y}>
+                {y}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="block">
+          <span className="mb-1 block text-[11.5px] text-ink-500">월 (선택)</span>
+          <select
+            value={month}
+            onChange={(e) => setMonth(e.target.value ? Number(e.target.value) : "")}
+            className="rounded-xl border border-line bg-surface px-3 py-2 text-[13px] outline-none focus:border-fin-green-500"
+          >
+            <option value="">미정</option>
+            {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+              <option key={m} value={m}>
+                {m}월
+              </option>
+            ))}
+          </select>
+        </label>
+        <div className="flex-1">
+          <span className="mb-1 block text-[11.5px] text-ink-500">확실성</span>
+          <div className="flex gap-1.5">
+            {CERTAINTY_OPTIONS.map((c) => (
+              <button
+                key={c.value}
+                aria-pressed={certainty === c.value}
+                onClick={() => setCertainty(c.value)}
+                className={`rounded-lg border px-2.5 py-2 text-[12px] font-semibold transition ${certainty === c.value
+                    ? "border-fin-green-500 bg-fin-green-50 text-fin-green-700"
+                    : "border-line bg-surface text-ink-400 hover:border-fin-green-200"
+                  }`}
+              >
+                {c.mark} {c.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <button
+        onClick={add}
+        className="w-full rounded-xl bg-fin-navy py-2.5 text-[13px] font-bold text-white transition hover:opacity-90"
+      >
+        ＋ {option.title} 추가
+      </button>
+    </div>
+  );
+}
+
+/* ------------------------- 공통 UI ------------------------- */
+
+function StepDots({ step }: { step: number; }) {
+  return (
+    <div className="flex items-center justify-center gap-2">
+      {[1, 2, 3].map((s) => (
+        <span
+          key={s}
+          className={`h-1.5 rounded-full transition-all ${s === step ? "w-6 bg-fin-green-500" : s < step ? "w-1.5 bg-fin-green-300" : "w-1.5 bg-line"
+            }`}
+        />
+      ))}
+    </div>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode; }) {
   return (
     <div>
-      <p className="mb-2 text-[12.5px] font-bold text-ink-900">{label}</p>
+      <p className="mb-2 text-[12.5px] font-bold text-fin-navy">{label}</p>
       {children}
     </div>
   );
@@ -251,12 +431,12 @@ function Choices({
         <button
           key={o}
           type="button"
+          aria-pressed={value === o}
           onClick={() => onChange(o)}
-          className={`rounded-xl border px-3 py-1.5 text-[12.5px] font-medium transition ${
-            value === o
-              ? "border-brand-500 bg-brand-50 text-brand-700"
-              : "border-line bg-surface text-ink-500 hover:border-brand-300"
-          }`}
+          className={`rounded-xl border px-3 py-1.5 text-[12.5px] font-medium transition ${value === o
+              ? "border-fin-green-500 bg-fin-green-50 text-fin-green-700"
+              : "border-line bg-surface text-ink-500 hover:border-fin-green-200"
+            }`}
         >
           {o}
         </button>

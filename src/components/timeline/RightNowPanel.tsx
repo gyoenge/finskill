@@ -1,0 +1,16 @@
+"use client";
+import { useState } from "react";
+import Link from "next/link";
+import { AssetIcon } from "@/components/Brand";
+import { daysUntil, type FinEvent } from "@/lib/domain/timeline";
+import type { TimelineState } from "@/lib/domain/state";
+import { nearestDeadline, rightNowFinEvents } from "@/lib/domain/selectors";
+import { useOpportunities } from "@/lib/domain/useOpportunities";
+export function RightNowPanel({ state, onSelectFinEvent, now = new Date() }: { state: TimelineState; onSelectFinEvent?: (f: FinEvent) => void; now?: Date ;}) {
+  const priorities = rightNowFinEvents(state, 3, now); const [index, setIndex] = useState(0); const active = index % Math.max(1, priorities.length); const current = priorities[active]; const deadline = nearestDeadline(state, now); const { ranked, loading, error } = useOpportunities(); const top = ranked[0];
+  return <aside className="right-now"><section className="card-soft priority-section"><div className="section-heading"><h2>지금, 이것만 챙기세요</h2>{priorities.length > 1 && <div className="carousel-controls"><span>{active + 1}/{priorities.length}</span><button className="icon-button" aria-label="이전 체크포인트" onClick={() => setIndex((active + priorities.length - 1) % priorities.length)}>‹</button><button className="icon-button" aria-label="다음 체크포인트" onClick={() => setIndex((active + 1) % priorities.length)}>›</button></div>}</div>
+    {current ? <div className="priority-card" aria-live="polite"><div className="priority-title"><AssetIcon name={current.type === "risk" ? "utility-protection" : current.type === "opportunity" ? "utility-opportunity" : "event-student-loan"} size={56} /><div><span className="status-badge deadline">우선 확인</span><h3>{current.title}</h3></div></div><p>{current.note ?? "다가오는 계획을 위해 미리 확인해두면 좋아요."}</p>{current.dueDate && <p className="priority-date">예정일 {current.dueDate.replaceAll("-", ".")}</p>}<button className="button button-primary" onClick={() => onSelectFinEvent?.(current)}>준비할 일 확인하기 <span>→</span></button></div> : <p className="empty-inline">지금 챙길 체크포인트가 없어요. 새로운 계획을 추가해보세요.</p>}</section>
+    {deadline && <section className="card-soft compact-section"><h2>곧 다가와요</h2><button className="aside-item" onClick={() => onSelectFinEvent?.(deadline)}><span className="asset-tile warm"><AssetIcon name="utility-deadline" size={46} /></span><span><b className="deadline-text">D-{daysUntil(deadline.dueDate, now)}</b><strong>{deadline.title}</strong><small>{deadline.dueDate?.replaceAll("-", ".")}</small></span><span className="chevron">›</span></button></section>}
+    <section className="card-soft compact-section"><div className="section-heading"><h2>놓치면 아까워요</h2><Link href="/opportunities">전체 보기 ›</Link></div>{top ? <Link className="aside-item" href="/opportunities"><span className="asset-tile warm"><AssetIcon name="utility-opportunity" size={46} /></span><span><strong className="line-clamp-2">{top.opp.title}</strong><small>{top.dday !== null ? `신청 마감 D-${top.dday}` : "신청 조건 확인하기"}</small></span><span className="chevron">›</span></Link> : <p className="empty-inline">{loading ? "나에게 맞는 기회를 찾고 있어요." : error ? "기회 정보를 불러오지 못했어요." : "새로운 기회를 기다리고 있어요."}</p>}</section>
+    <Link href="/ask" className="ask-shortcut"><span className="chat-symbol" aria-hidden="true">···</span><div><strong>혼자 고민하지 마세요.</strong><span>피오에게 물어보기 ↗</span></div></Link></aside>;
+}

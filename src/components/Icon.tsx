@@ -1,5 +1,5 @@
 /**
- * FinSkill 아이콘 세트.
+ * 20FIN 아이콘 세트.
  *
  * 이모지 대신 쓰는 선형 SVG 아이콘. 사이드바 메뉴 아이콘과 같은 규격
  * (24 viewBox · stroke 1.8 · round cap/join · currentColor)으로 통일해

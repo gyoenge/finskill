@@ -1,0 +1,324 @@
+{
+  "version": "1.0",
+  "tool": "built-in image_gen",
+  "date": "2026-09-05",
+  "assets": [
+    {
+      "name": "pio-default",
+      "path": "/Users/sonhuigyeong/.codex/generated_images/01a0713d-a50c-7100-9831-bf5d18bbaab6/exec-6a1199e0-d618-4beb-b5e5-b31ee1623714.png",
+      "width": 1254,
+      "height": 1254,
+      "transparent": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "label": "기본 · 인사",
+      "url": "/brand/20fin-v1/pio-default.png",
+      "recommendedDisplay": "40–160px"
+    },
+    {
+      "name": "pio-thinking",
+      "path": "/Users/sonhuigyeong/.codex/generated_images/01a0713d-a50c-7100-9831-bf5d18bbaab6/exec-221c73de-811f-405e-ab97-24cf214f45e5.png",
+      "width": 1230,
+      "height": 1278,
+      "transparent": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "label": "생각 · 답변 준비",
+      "url": "/brand/20fin-v1/pio-thinking.png",
+      "recommendedDisplay": "40–160px"
+    },
+    {
+      "name": "pio-guide",
+      "path": "/Users/sonhuigyeong/.codex/generated_images/01a0713d-a50c-7100-9831-bf5d18bbaab6/exec-130bc8af-df0f-49cb-bb1d-42920f4d55b2.png",
+      "width": 1238,
+      "height": 1271,
+      "transparent": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "label": "안내 · 다음 행동",
+      "url": "/brand/20fin-v1/pio-guide.png",
+      "recommendedDisplay": "40–160px"
+    },
+    {
+      "name": "pio-celebrate",
+      "path": "/Users/sonhuigyeong/.codex/generated_images/01a0713d-a50c-7100-9831-bf5d18bbaab6/exec-c9951ae5-3281-4359-9825-e6b547da1e27.png",
+      "width": 1230,
+      "height": 1278,
+      "transparent": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "label": "완료 · 축하",
+      "url": "/brand/20fin-v1/pio-celebrate.png",
+      "recommendedDisplay": "40–160px"
+    },
+    {
+      "name": "pio-support",
+      "path": "/Users/sonhuigyeong/.codex/generated_images/01a0713d-a50c-7100-9831-bf5d18bbaab6/exec-e7ba7936-65b2-40cc-a678-8858fd7779ea.png",
+      "width": 1230,
+      "height": 1278,
+      "transparent": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "label": "응원 · 동반자",
+      "url": "/brand/20fin-v1/pio-support.png",
+      "recommendedDisplay": "40–160px"
+    },
+    {
+      "name": "landscape-timeline-desktop",
+      "path": "/Users/sonhuigyeong/.codex/generated_images/01a0713d-a50c-7100-9831-bf5d18bbaab6/exec-248481a1-2917-4c98-b598-7ef208c777a5.png",
+      "width": 1536,
+      "height": 1024,
+      "transparent": false,
+      "alphaExtrema": null,
+      "label": "데스크톱 타임라인",
+      "url": "/brand/20fin-v1/landscape-timeline-desktop.png",
+      "recommendedDisplay": "responsive / object-fit: cover"
+    },
+    {
+      "name": "event-education",
+      "path": "/Users/sonhuigyeong/.codex/generated_images/01a0713d-a50c-7100-9831-bf5d18bbaab6/exec-89a4cfe1-839e-4368-b634-0a7dd74e21ae.png",
+      "width": 1254,
+      "height": 1254,
+      "transparent": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "label": "입학 · 졸업",
+      "url": "/brand/20fin-v1/event-education.png",
+      "recommendedDisplay": "48–96px"
+    },
+    {
+      "name": "landscape-timeline-mobile",
+      "path": "/Users/sonhuigyeong/.codex/generated_images/01a0713d-a50c-7100-9831-bf5d18bbaab6/exec-24ac9289-2a3c-44ff-8238-a62c147554eb.png",
+      "width": 1024,
+      "height": 1536,
+      "transparent": false,
+      "alphaExtrema": null,
+      "label": "모바일 온보딩",
+      "url": "/brand/20fin-v1/landscape-timeline-mobile.png",
+      "recommendedDisplay": "responsive / object-fit: cover"
+    },
+    {
+      "name": "landscape-city-banner",
+      "path": "/Users/sonhuigyeong/.codex/generated_images/01a0713d-a50c-7100-9831-bf5d18bbaab6/exec-3badc306-dda2-429a-b2f5-d2c5ec60dd32.png",
+      "width": 1774,
+      "height": 887,
+      "transparent": false,
+      "alphaExtrema": null,
+      "label": "도시 응원 배너",
+      "url": "/brand/20fin-v1/landscape-city-banner.png",
+      "recommendedDisplay": "responsive / object-fit: cover"
+    },
+    {
+      "name": "event-student-loan",
+      "path": "/Users/sonhuigyeong/.codex/generated_images/01a0713d-a50c-7100-9831-bf5d18bbaab6/exec-46f8c083-e790-4b37-bca4-4c2ee5bd44ea.png",
+      "width": 1254,
+      "height": 1254,
+      "transparent": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "label": "학자금 · 서류",
+      "url": "/brand/20fin-v1/event-student-loan.png",
+      "recommendedDisplay": "48–96px"
+    },
+    {
+      "name": "event-housing",
+      "path": "/Users/sonhuigyeong/.codex/generated_images/01a0713d-a50c-7100-9831-bf5d18bbaab6/exec-6a8177c4-2f2d-48b7-b2ef-dc74dcf7ef26.png",
+      "width": 1254,
+      "height": 1254,
+      "transparent": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "label": "독립 · 주거",
+      "url": "/brand/20fin-v1/event-housing.png",
+      "recommendedDisplay": "48–96px"
+    },
+    {
+      "name": "event-career",
+      "path": "/Users/sonhuigyeong/.codex/generated_images/01a0713d-a50c-7100-9831-bf5d18bbaab6/exec-b69cd27f-b040-4600-9b4a-df411474a463.png",
+      "width": 1254,
+      "height": 1254,
+      "transparent": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "label": "취업 · 인턴",
+      "url": "/brand/20fin-v1/event-career.png",
+      "recommendedDisplay": "48–96px"
+    },
+    {
+      "name": "event-savings",
+      "path": "/Users/sonhuigyeong/.codex/generated_images/01a0713d-a50c-7100-9831-bf5d18bbaab6/exec-277fc222-0680-4f0c-989b-d2a71f3a0449.png",
+      "width": 1254,
+      "height": 1254,
+      "transparent": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "label": "저축 · 자산형성",
+      "url": "/brand/20fin-v1/event-savings.png",
+      "recommendedDisplay": "48–96px"
+    },
+    {
+      "name": "event-first-salary",
+      "path": "/Users/sonhuigyeong/.codex/generated_images/01a0713d-a50c-7100-9831-bf5d18bbaab6/exec-b3815d77-cd5b-4ad4-9f7e-3e4648d6bee0.png",
+      "width": 1254,
+      "height": 1254,
+      "transparent": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "label": "첫 월급",
+      "url": "/brand/20fin-v1/event-first-salary.png",
+      "recommendedDisplay": "48–96px"
+    },
+    {
+      "name": "utility-protection",
+      "path": "/Users/sonhuigyeong/.codex/generated_images/01a0713d-a50c-7100-9831-bf5d18bbaab6/exec-9efb1303-f0ff-4e79-8907-25a3f8675814.png",
+      "width": 1254,
+      "height": 1254,
+      "transparent": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "label": "보호 · 계약 점검",
+      "url": "/brand/20fin-v1/utility-protection.png",
+      "recommendedDisplay": "48–96px"
+    },
+    {
+      "name": "utility-opportunity",
+      "path": "/Users/sonhuigyeong/.codex/generated_images/01a0713d-a50c-7100-9831-bf5d18bbaab6/exec-23f6a580-f9f5-437c-b740-443a7bdec018.png",
+      "width": 1254,
+      "height": 1254,
+      "transparent": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "label": "지원 · 기회",
+      "url": "/brand/20fin-v1/utility-opportunity.png",
+      "recommendedDisplay": "48–96px"
+    },
+    {
+      "name": "utility-deadline",
+      "path": "/Users/sonhuigyeong/.codex/generated_images/01a0713d-a50c-7100-9831-bf5d18bbaab6/exec-96687bb6-356a-452b-9792-3a69f317230c.png",
+      "width": 1254,
+      "height": 1254,
+      "transparent": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "label": "일정 · 마감",
+      "url": "/brand/20fin-v1/utility-deadline.png",
+      "recommendedDisplay": "48–96px"
+    },
+    {
+      "name": "event-goal",
+      "path": "/Users/sonhuigyeong/.codex/generated_images/01a0713d-a50c-7100-9831-bf5d18bbaab6/exec-afb5c227-f447-4d32-9cfa-68892b3019c6.png",
+      "width": 1254,
+      "height": 1254,
+      "transparent": true,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "label": "미래 목표",
+      "url": "/brand/20fin-v1/event-goal.png",
+      "recommendedDisplay": "48–96px"
+    }
+  ],
+  "prompts": [
+    {
+      "name": "pio-default",
+      "prompt": "20FIN Korean young-adult financial planning brand. Premium soft 2.5D illustration, rounded satin matte clay with very subtle watercolor softness, clean edges, soft upper-left daylight, calm optimistic grown-up friendly aesthetic matching the supplied dashboard reference. Palette bright leaf green #20B26B, deeper green #008653, sunny yellow #FFD95A, small orange #FF8B3D details, navy #102A43. No lettering, no watermark, no UI, no frames. Production-ready isolated assets with generous safety margins. Use case: stylized-concept. Reference image is for art direction only. Generate ONLY the single full-body Pio mascot isolated on a genuinely transparent alpha background. Pio is a plump pear-shaped yellow baby chick, two green sprout leaves growing from a tiny stem on top, tiny dark navy oval eyes with delicate white catchlight, subtle peach blush, tiny orange beak, small rounded wings, tiny orange feet. Front view, neutral welcoming smile, one wing slightly raised. No clothes, no coins, no extra props, no floor, no background gradient. Body fills about 72 percent of square 1024 canvas; sprout fully inside frame. Mature premium app mascot, avoid plush fur and plastic gloss."
+    },
+    {
+      "name": "pio-thinking",
+      "prompt": "20FIN Korean young-adult financial planning brand. Premium soft 2.5D illustration, rounded satin matte clay with very subtle watercolor softness, clean edges, soft upper-left daylight, calm optimistic grown-up friendly aesthetic matching the supplied dashboard reference. Palette bright leaf green #20B26B, deeper green #008653, sunny yellow #FFD95A, small orange #FF8B3D details, navy #102A43. No lettering, no watermark, no UI, no frames. Production-ready isolated assets with generous safety margins. Use case: identity-preserve. Keep exactly the reference Pio identity, face proportions, yellow body, two green sprout leaves and satin clay material. Change pose only: head tilted slightly, one small wing under beak in a gentle thoughtful pose. No question mark, no props. Full body centered with 10% clear margin, genuine transparent alpha background."
+    },
+    {
+      "name": "pio-celebrate",
+      "prompt": "20FIN Korean young-adult financial planning brand. Premium soft 2.5D illustration, rounded satin matte clay with very subtle watercolor softness, clean edges, soft upper-left daylight, calm optimistic grown-up friendly aesthetic matching the supplied dashboard reference. Palette bright leaf green #20B26B, deeper green #008653, sunny yellow #FFD95A, small orange #FF8B3D details, navy #102A43. No lettering, no watermark, no UI, no frames. Production-ready isolated assets with generous safety margins. Use case: identity-preserve. Keep exactly reference Pio identity and materials. Change pose only: both wings lifted in a restrained happy celebration, closed smiling eyes, tiny two green and yellow sparkles near wings. Feet grounded, full body, no confetti cloud. Transparent alpha background, 10% margins."
+    },
+    {
+      "name": "pio-guide",
+      "prompt": "20FIN Korean young-adult financial planning brand. Premium soft 2.5D illustration, rounded satin matte clay with very subtle watercolor softness, clean edges, soft upper-left daylight, calm optimistic grown-up friendly aesthetic matching the supplied dashboard reference. Palette bright leaf green #20B26B, deeper green #008653, sunny yellow #FFD95A, small orange #FF8B3D details, navy #102A43. No lettering, no watermark, no UI, no frames. Production-ready isolated assets with generous safety margins. Use case: identity-preserve. Keep exactly reference Pio identity, anatomy and materials. Full body 3/4 slightly turned left, one wing gently extended to point toward empty space on left; friendly closed beak smile. No sign, no text. Transparent alpha background, 12% margins."
+    },
+    {
+      "name": "pio-support",
+      "prompt": "20FIN Korean young-adult financial planning brand. Premium soft 2.5D illustration, rounded satin matte clay with very subtle watercolor softness, clean edges, soft upper-left daylight, calm optimistic grown-up friendly aesthetic matching the supplied dashboard reference. Palette bright leaf green #20B26B, deeper green #008653, sunny yellow #FFD95A, small orange #FF8B3D details, navy #102A43. No lettering, no watermark, no UI, no frames. Production-ready isolated assets with generous safety margins. Use case: identity-preserve. Keep exactly reference Pio identity and materials. Full body front view, holding a small green sprig with two rounded leaves in its right wing, warm reassuring smile, like a financial companion. No pot. Transparent alpha background, 12% margins."
+    },
+    {
+      "name": "landscape-timeline-desktop",
+      "prompt": "20FIN Korean young-adult financial planning brand. Premium soft 2.5D illustration, rounded satin matte clay with very subtle watercolor softness, clean edges, soft upper-left daylight, calm optimistic grown-up friendly aesthetic matching the supplied dashboard reference. Palette bright leaf green #20B26B, deeper green #008653, sunny yellow #FFD95A, small orange #FF8B3D details, navy #102A43. No lettering, no watermark, no UI, no frames. Production-ready isolated assets with generous safety margins. Use case: stylized-concept. Create a wide 3:2 landscape illustration for the hero timeline card, not a UI screenshot. Pale cyan sky takes the upper 60% with generous almost empty space for live headings. Bottom 40% has gentle green rolling hills, sparse small stylized trees at left and right, tiny muted mint city silhouettes far back, pale cream winding footpath from bottom middle toward distant center. Small warm yellow sun left of center near horizon, two very soft clouds. Center foreground open for a separately composited Pio. Soft low contrast. Full opaque edge-to-edge image, NO mascot, NO icons, NO letters, NO dates, NO timeline nodes."
+    },
+    {
+      "name": "landscape-timeline-mobile",
+      "prompt": "20FIN Korean young-adult financial planning brand. Premium soft 2.5D illustration, rounded satin matte clay with very subtle watercolor softness, clean edges, soft upper-left daylight, calm optimistic grown-up friendly aesthetic matching the supplied dashboard reference. Palette bright leaf green #20B26B, deeper green #008653, sunny yellow #FFD95A, small orange #FF8B3D details, navy #102A43. No lettering, no watermark, no UI, no frames. Production-ready isolated assets with generous safety margins. Use case: stylized-concept. Create a portrait 2:3 companion landscape background for mobile onboarding. Pale cyan sky occupying upper 60% as calm empty copy space, bottom green rolling meadow with small peripheral trees, tiny distant mint city, pale cream winding footpath from bottom center toward center horizon. Small yellow sun near horizon. Low contrast, soft flat-clay illustration. Full opaque edge-to-edge. NO mascot, NO icons, NO lettering or UI."
+    },
+    {
+      "name": "landscape-city-banner",
+      "prompt": "20FIN Korean young-adult financial planning brand. Premium soft 2.5D illustration, rounded satin matte clay with very subtle watercolor softness, clean edges, soft upper-left daylight, calm optimistic grown-up friendly aesthetic matching the supplied dashboard reference. Palette bright leaf green #20B26B, deeper green #008653, sunny yellow #FFD95A, small orange #FF8B3D details, navy #102A43. No lettering, no watermark, no UI, no frames. Production-ready isolated assets with generous safety margins. Use case: stylized-concept. Create a panoramic 3:1 background strip for a brand encouragement banner. Warm very pale cream #FFF7DB backdrop, left 48% almost empty for live text. Along bottom right a delicate mint and teal abstract Korean city skyline with rounded green shrubs and a soft small yellow sun. Sophisticated low-contrast illustration, decorative content confined to lower right. Full opaque image. No character, NO text, no logo."
+    },
+    {
+      "name": "event-education",
+      "prompt": "20FIN Korean young-adult financial planning brand. Premium soft 2.5D illustration, rounded satin matte clay with very subtle watercolor softness, clean edges, soft upper-left daylight, calm optimistic grown-up friendly aesthetic matching the supplied dashboard reference. Palette bright leaf green #20B26B, deeper green #008653, sunny yellow #FFD95A, small orange #FF8B3D details, navy #102A43. No lettering, no watermark, no UI, no frames. Production-ready isolated assets with generous safety margins. Use case: stylized-concept. One single green graduation mortarboard cap with short yellow tassel, rounded soft clay, three-quarter view, readable at 48px. Transparent alpha background, no circular tile, no floor, square canvas, object fills 65%, generous margin."
+    },
+    {
+      "name": "event-career",
+      "prompt": "20FIN Korean young-adult financial planning brand. Premium soft 2.5D illustration, rounded satin matte clay with very subtle watercolor softness, clean edges, soft upper-left daylight, calm optimistic grown-up friendly aesthetic matching the supplied dashboard reference. Palette bright leaf green #20B26B, deeper green #008653, sunny yellow #FFD95A, small orange #FF8B3D details, navy #102A43. No lettering, no watermark, no UI, no frames. Production-ready isolated assets with generous safety margins. Use case: stylized-concept. One single warm orange briefcase with tiny cream clasp and handle, rounded soft clay, straight-on slight three-quarter view, readable at 48px. Transparent alpha background, no tile, no floor, square canvas object fills 65%."
+    },
+    {
+      "name": "event-housing",
+      "prompt": "20FIN Korean young-adult financial planning brand. Premium soft 2.5D illustration, rounded satin matte clay with very subtle watercolor softness, clean edges, soft upper-left daylight, calm optimistic grown-up friendly aesthetic matching the supplied dashboard reference. Palette bright leaf green #20B26B, deeper green #008653, sunny yellow #FFD95A, small orange #FF8B3D details, navy #102A43. No lettering, no watermark, no UI, no frames. Production-ready isolated assets with generous safety margins. Use case: stylized-concept. One single tiny warm orange roof house, cream walls and green door, minimal two windows, rounded soft clay three-quarter view, readable at 48px. Transparent alpha background, no tile, no floor, square canvas object fills 65%."
+    },
+    {
+      "name": "event-student-loan",
+      "prompt": "20FIN Korean young-adult financial planning brand. Premium soft 2.5D illustration, rounded satin matte clay with very subtle watercolor softness, clean edges, soft upper-left daylight, calm optimistic grown-up friendly aesthetic matching the supplied dashboard reference. Palette bright leaf green #20B26B, deeper green #008653, sunny yellow #FFD95A, small orange #FF8B3D details, navy #102A43. No lettering, no watermark, no UI, no frames. Production-ready isolated assets with generous safety margins. Use case: stylized-concept. One single mint-green document with folded upper corner, three short raised cream horizontal bars and small green check at lower corner; symbolic lines only no letters or digits. Rounded soft clay, nearly frontal view, readable at 48px. Transparent alpha background, no tile, square canvas object fills 65%."
+    },
+    {
+      "name": "event-first-salary",
+      "prompt": "20FIN Korean young-adult financial planning brand. Premium soft 2.5D illustration, rounded satin matte clay with very subtle watercolor softness, clean edges, soft upper-left daylight, calm optimistic grown-up friendly aesthetic matching the supplied dashboard reference. Palette bright leaf green #20B26B, deeper green #008653, sunny yellow #FFD95A, small orange #FF8B3D details, navy #102A43. No lettering, no watermark, no UI, no frames. Production-ready isolated assets with generous safety margins. Use case: stylized-concept. One single soft green open wallet with one plain warm-yellow round coin partially tucked inside. No currency symbols, no text. Rounded soft clay three-quarter view, readable at 48px. Transparent alpha background, no tile, no floor, square canvas object fills 65%."
+    },
+    {
+      "name": "event-savings",
+      "prompt": "20FIN Korean young-adult financial planning brand. Premium soft 2.5D illustration, rounded satin matte clay with very subtle watercolor softness, clean edges, soft upper-left daylight, calm optimistic grown-up friendly aesthetic matching the supplied dashboard reference. Palette bright leaf green #20B26B, deeper green #008653, sunny yellow #FFD95A, small orange #FF8B3D details, navy #102A43. No lettering, no watermark, no UI, no frames. Production-ready isolated assets with generous safety margins. Use case: stylized-concept. One single small cream savings jar holding three plain golden yellow coins with a little green two-leaf sprout growing at top. Opaque satin clay, not glass. Simple bold silhouette readable at 48px. No currency symbols. Transparent alpha background, no tile, square canvas object fills 65%."
+    },
+    {
+      "name": "event-goal",
+      "prompt": "20FIN Korean young-adult financial planning brand. Premium soft 2.5D illustration, rounded satin matte clay with very subtle watercolor softness, clean edges, soft upper-left daylight, calm optimistic grown-up friendly aesthetic matching the supplied dashboard reference. Palette bright leaf green #20B26B, deeper green #008653, sunny yellow #FFD95A, small orange #FF8B3D details, navy #102A43. No lettering, no watermark, no UI, no frames. Production-ready isolated assets with generous safety margins. Use case: stylized-concept. One single soft green waving pennant flag on a short cream pole with small rounded green base. Optimistic future milestone, simple rounded clay form, readable at 48px. Transparent alpha background, no tile, no text, square canvas object fills 65%."
+    },
+    {
+      "name": "utility-deadline",
+      "prompt": "20FIN Korean young-adult financial planning brand. Premium soft 2.5D illustration, rounded satin matte clay with very subtle watercolor softness, clean edges, soft upper-left daylight, calm optimistic grown-up friendly aesthetic matching the supplied dashboard reference. Palette bright leaf green #20B26B, deeper green #008653, sunny yellow #FFD95A, small orange #FF8B3D details, navy #102A43. No lettering, no watermark, no UI, no frames. Production-ready isolated assets with generous safety margins. Use case: stylized-concept. One single cream desk calendar with warm orange top binding and four raised orange square marks, no numbers or text. Rounded clay, nearly frontal slight three-quarter view, readable at 48px. Transparent alpha background, no tile, no floor, square canvas object fills 65%."
+    },
+    {
+      "name": "utility-opportunity",
+      "prompt": "20FIN Korean young-adult financial planning brand. Premium soft 2.5D illustration, rounded satin matte clay with very subtle watercolor softness, clean edges, soft upper-left daylight, calm optimistic grown-up friendly aesthetic matching the supplied dashboard reference. Palette bright leaf green #20B26B, deeper green #008653, sunny yellow #FFD95A, small orange #FF8B3D details, navy #102A43. No lettering, no watermark, no UI, no frames. Production-ready isolated assets with generous safety margins. Use case: stylized-concept. One single golden yellow gift box with warm orange ribbon and small rounded bow, premium soft clay, simple three-quarter view, readable at 48px. Transparent alpha background, no tile, no floor, square canvas object fills 65%."
+    },
+    {
+      "name": "utility-protection",
+      "prompt": "20FIN Korean young-adult financial planning brand. Premium soft 2.5D illustration, rounded satin matte clay with very subtle watercolor softness, clean edges, soft upper-left daylight, calm optimistic grown-up friendly aesthetic matching the supplied dashboard reference. Palette bright leaf green #20B26B, deeper green #008653, sunny yellow #FFD95A, small orange #FF8B3D details, navy #102A43. No lettering, no watermark, no UI, no frames. Production-ready isolated assets with generous safety margins. Use case: stylized-concept. One single rounded green shield with a raised cream check mark, trustworthy minimal satin clay three-quarter front view, readable at 48px. Transparent alpha background, no tile, no floor, square canvas object fills 65%."
+    }
+  ]
+}

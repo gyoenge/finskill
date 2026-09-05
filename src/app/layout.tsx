@@ -2,39 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import "./globals.css";
 import { BottomNav, SideNav } from "@/components/Nav";
-import { LogoWordmark } from "@/components/Logo";
-import { StoreProvider } from "@/components/StoreProvider";
-
-export const metadata: Metadata = {
-  title: "FinSkill — 필요한 금융 능력을 연결하다",
-  description:
-    "필요한 금융 AI Skill을 골라 장착하고, 나만의 금융 Agent를 만드는 Skill Platform",
-};
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="ko">
-      <body className="min-h-screen font-sans antialiased">
-        <StoreProvider>
-        <div className="flex min-h-screen">
-          <SideNav />
-          <div className="flex min-w-0 flex-1 flex-col">
-            <header className="flex items-center justify-between border-b border-line bg-surface px-4 py-3 md:hidden">
-              <Link href="/">
-                <LogoWordmark size={26} />
-              </Link>
-              <Link href="/onboarding" className="text-[12px] font-semibold text-brand-700">
-                Persona 설정
-              </Link>
-            </header>
-            <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-24 pt-6 md:px-8 md:pb-14">
-              {children}
-            </main>
-          </div>
-        </div>
-        <BottomNav />
-        </StoreProvider>
-      </body>
-    </html>
-  );
+import { Wordmark } from "@/components/Brand";
+import { TimelineProvider } from "@/components/timeline/TimelineStore";
+export const metadata: Metadata = { title: "20FIN — 20대의 다음을 준비하는 금융", description: "삶의 일정에 맞춰 필요한 금융정보와 다음 행동을 함께 준비해요." };
+export default function RootLayout({ children }: { children: React.ReactNode ;}) {
+  return <html lang="ko"><body><a className="skip-link" href="#main-content">본문으로 이동</a><TimelineProvider><div className="app-shell"><SideNav /><div className="app-body"><header className="mobile-header"><Link href="/" aria-label="20FIN 홈"><Wordmark size={28} /></Link><Link href="/ask">피오에게 물어보기 ↗</Link></header><main id="main-content" className="app-content">{children}</main></div><BottomNav /></div></TimelineProvider></body></html>;
 }
