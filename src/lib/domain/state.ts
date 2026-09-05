@@ -16,12 +16,23 @@ import type {
 import { statusForDate } from "./timeline";
 import { generateFinEvents } from "./fin-events";
 
+/** Decision UI — 선택·배분 질문에 대한 구조화 추천 (설계 §32) */
+export interface Decision {
+  title: string;
+  recommendation: string;
+  /** 비교표 행 — label + 열 값들 + 특징 */
+  options: { label: string; columns: Record<string, string>; note?: string; recommended?: boolean }[];
+  why: string[];
+}
+
 export interface ChatMessage {
   id: string;
   role: "user" | "agent";
   content: string;
   /** 이 답변에 연결된 Life Event (Event → AI 연결, 설계 §26) */
   lifeEventId?: string;
+  /** 구조화 추천 (있을 때만) */
+  decision?: Decision;
   sources?: string[];
   createdAt: string;
 }
