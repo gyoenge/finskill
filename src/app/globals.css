@@ -49,6 +49,22 @@
   /* 별점 */
   --color-star: #f2b13c;
 
+  /* ── 20FIN 팔레트 (docs/design-spec.md §11) ───────────────────────
+     Young · Calm · Optimistic · Simple. 색이 곧 정보의 의미를 전달한다:
+     Green=지금/완료/행동, Yellow=기회/Insight, Orange=임박/주의 */
+  --color-fin-green-50: #e9f8f0;
+  --color-fin-green-100: #cdefdd;
+  --color-fin-green-200: #9fe0bf;
+  --color-fin-green-500: #20b26b; /* Primary */
+  --color-fin-green-600: #1a9d5d;
+  --color-fin-green-700: #16814c;
+  --color-fin-yellow: #ffd95a; /* Opportunity · Insight · Pio */
+  --color-fin-yellow-bg: #fff7db;
+  --color-fin-orange: #ff8b3d; /* Deadline · D-day · 주의 */
+  --color-fin-orange-bg: #fff0e4;
+  --color-fin-cream: #fff9e7; /* Main Background */
+  --color-fin-navy: #102a43; /* Text */
+
   --font-sans: "Pretendard", "Apple SD Gothic Neo", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
 }
 
