@@ -7,7 +7,7 @@ import { TimelineCanvas } from "@/components/timeline/TimelineCanvas";
 import { RightNowPanel } from "@/components/timeline/RightNowPanel";
 import { PioSays } from "@/components/Brand";
 import { ageOf, sortedLifeEvents, statusLabel, upcomingLifeEvents } from "@/lib/domain/selectors";
-import { parseEventDate, type LifeEvent } from "@/lib/domain/timeline";
+import { formatEventDate, type LifeEvent } from "@/lib/domain/timeline";
 
 /** 화면 3 — Home / 나의 20대 (설계 §14~§21) */
 export default function HomePage() {
@@ -82,10 +82,7 @@ export default function HomePage() {
                       className="w-full rounded-xl bg-canvas px-3 py-2.5 text-left transition hover:bg-fin-green-50"
                     >
                       <p className="text-[13px] font-bold text-ink-900">{e.title}</p>
-                      <p className="text-[11px] text-ink-400">
-                        {parseEventDate(e.date)?.getFullYear()}.
-                        {String((parseEventDate(e.date)?.getMonth() ?? 0) + 1).padStart(2, "0")}
-                      </p>
+                      <p className="text-[11px] text-ink-400">{formatEventDate(e.date)}</p>
                     </button>
                   </li>
                 ))}

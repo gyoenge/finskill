@@ -1,7 +1,7 @@
 "use client";
 
 import { Icon } from "@/components/Icon";
-import { LIFE_EVENT_CATALOG, parseEventDate, type LifeEvent, type FinEvent } from "@/lib/domain/timeline";
+import { LIFE_EVENT_CATALOG, formatEventDate, parseEventDate, type LifeEvent, type FinEvent } from "@/lib/domain/timeline";
 
 /**
  * 나의 20대 Timeline — 부드러운 Path 위에 Life Event 노드를 배치한다 (설계 §16).
@@ -18,11 +18,6 @@ function iconForType(type: string): string {
   return LIFE_EVENT_CATALOG[type as keyof typeof LIFE_EVENT_CATALOG]?.icon ?? "target";
 }
 
-function yearMonth(date?: string): string {
-  const dt = parseEventDate(date);
-  if (!dt) return "미정";
-  return `${dt.getFullYear()}.${String(dt.getMonth() + 1).padStart(2, "0")}`;
-}
 
 type Node =
   | { kind: "event"; event: LifeEvent; finCount: number }
@@ -104,7 +99,7 @@ export function TimelineCanvas({
                 <Connector left={false} right={!isLast} />
               </div>
               <p className="mt-2 line-clamp-1 text-[13px] font-bold text-ink-900">{event.title}</p>
-              <p className="text-[11px] text-ink-400">{yearMonth(event.date)}</p>
+              <p className="text-[11px] text-ink-400">{formatEventDate(event.date)}</p>
               <span
                 className={`mt-1 inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
                   event.certainty === "confirmed"

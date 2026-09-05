@@ -184,12 +184,20 @@ export const LIFE_EVENT_CATALOG: Record<LifeEventType, { label: string; icon: st
 /* 날짜 유틸                                                           */
 /* ------------------------------------------------------------------ */
 
-/** "YYYY-MM" 또는 "YYYY-MM-DD" 를 Date(월 1일) 로. 실패 시 null */
+/** "YYYY" · "YYYY-MM" · "YYYY-MM-DD" 를 Date 로. 월이 없으면 1월로 본다. 실패 시 null */
 export function parseEventDate(date?: string): Date | null {
   if (!date) return null;
   const [y, m, d] = date.split("-").map((n) => parseInt(n, 10));
-  if (!y || !m) return null;
-  return new Date(y, m - 1, d || 1);
+  if (!y) return null;
+  return new Date(y, (m || 1) - 1, d || 1);
+}
+
+/** Timeline·카드에 표시할 라벨: "YYYY.MM" · "YYYY" · "미정" */
+export function formatEventDate(date?: string): string {
+  if (!date) return "미정";
+  const [y, m] = date.split("-").map((n) => parseInt(n, 10));
+  if (!y) return "미정";
+  return m ? `${y}.${String(m).padStart(2, "0")}` : `${y}`;
 }
 
 /** 오늘 기준으로 과거/현재/미래 판정 (같은 달이면 current) */

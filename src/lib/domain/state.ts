@@ -50,6 +50,30 @@ function id(prefix: string): string {
   return `${prefix}_${Date.now().toString(36)}_${seq}`;
 }
 
+/** 만 나이 → 출생연도 */
+export function birthYearFromAge(age: number, now = new Date()): number {
+  return now.getFullYear() - age;
+}
+
+/** 온보딩 시 입력한 Life Event 초안 (id/status 없이) */
+export type LifeEventDraft = Omit<LifeEvent, "id" | "userId" | "status" | "source">;
+
+/**
+ * 온보딩 완료 — User 와 Life Event 목록으로 상태를 새로 구성한다 (설계 §7·§12).
+ * 각 Life Event 에 대해 Fin Event 를 즉시 생성한다("앞으로의 20FIN을 준비했어요").
+ */
+export function initFromOnboarding(
+  user: User,
+  drafts: LifeEventDraft[],
+  now = new Date(),
+): TimelineState {
+  let next: TimelineState = { ...EMPTY_STATE, user: { ...user }, chats: {}, isDemo: false };
+  for (const draft of drafts) {
+    next = addLifeEvent(next, draft, now);
+  }
+  return next;
+}
+
 /** 모든 Life Event 의 과거/현재/미래 상태를 오늘 기준으로 다시 계산 */
 export function recomputeStatuses(state: TimelineState, now = new Date()): TimelineState {
   return {
