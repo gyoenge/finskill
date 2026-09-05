@@ -1,0 +1,51 @@
+[
+  {
+    "name": "Primary",
+    "foreground": "#ffffff",
+    "background": "#008653",
+    "ratio": 4.63,
+    "passes_4_5": true
+  },
+  {
+    "name": "Body",
+    "foreground": "#243d50",
+    "background": "#ffffff",
+    "ratio": 11.3,
+    "passes_4_5": true
+  },
+  {
+    "name": "Secondary",
+    "foreground": "#526674",
+    "background": "#fcfbf6",
+    "ratio": 5.77,
+    "passes_4_5": true
+  },
+  {
+    "name": "Goal",
+    "foreground": "#795600",
+    "background": "#fff7db",
+    "ratio": 6.23,
+    "passes_4_5": true
+  },
+  {
+    "name": "Deadline",
+    "foreground": "#a44512",
+    "background": "#fff0e4",
+    "ratio": 5.48,
+    "passes_4_5": true
+  },
+  {
+    "name": "Expected",
+    "foreground": "#365a93",
+    "background": "#eef4ff",
+    "ratio": 6.26,
+    "passes_4_5": true
+  },
+  {
+    "name": "Error",
+    "foreground": "#b12d43",
+    "background": "#fff0f2",
+    "ratio": 5.71,
+    "passes_4_5": true
+  }
+]

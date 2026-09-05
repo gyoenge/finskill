@@ -1,0 +1,83 @@
+/* 20FIN Design System v1.0 — opt-in foundation; not a global app override. */
+:root {
+  --tf-green-50: #ecf9f1;
+  --tf-green-100: #d4f1df;
+  --tf-green-200: #a8e3bf;
+  --tf-green-500: #20b26b;
+  --tf-green-600: #008653;
+  --tf-green-700: #006c43;
+  --tf-green-800: #00543a;
+  --tf-navy: #102a43;
+  --tf-text: #243d50;
+  --tf-muted: #526674;
+  --tf-canvas: #fcfbf6;
+  --tf-surface: #ffffff;
+  --tf-subtle: #f3f5f2;
+  --tf-border: #e2e8e1;
+  --tf-input-border: #7a8983;
+  --tf-yellow: #ffd95a;
+  --tf-yellow-bg: #fff7db;
+  --tf-yellow-text: #795600;
+  --tf-orange: #ff8b3d;
+  --tf-orange-bg: #fff0e4;
+  --tf-orange-text: #a44512;
+  --tf-blue-bg: #eef4ff;
+  --tf-blue-text: #365a93;
+  --tf-danger: #b12d43;
+  --tf-danger-bg: #fff0f2;
+  --tf-sky: #e6f7fa;
+  --tf-meadow: #d9efad;
+  --tf-font: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', system-ui, sans-serif;
+  --tf-type-caption: 0.75rem;
+  --tf-type-small: 0.875rem;
+  --tf-type-body: 1rem;
+  --tf-type-title: 1.25rem;
+  --tf-type-heading: 1.75rem;
+  --tf-type-display: 2.5rem;
+  --tf-space-1: 4px;
+  --tf-space-2: 8px;
+  --tf-space-3: 12px;
+  --tf-space-4: 16px;
+  --tf-space-5: 20px;
+  --tf-space-6: 24px;
+  --tf-space-8: 32px;
+  --tf-space-12: 48px;
+  --tf-space-16: 64px;
+  --tf-radius-input: 12px;
+  --tf-radius-card: 20px;
+  --tf-radius-hero: 28px;
+  --tf-radius-pill: 999px;
+  --tf-shadow-card: 0 2px 4px #102a4303, 0 10px 28px -16px #102a431f;
+  --tf-shadow-overlay: 0 20px 64px #102a4326;
+  --tf-duration-fast: 160ms;
+  --tf-duration-enter: 240ms;
+  --tf-ease: cubic-bezier(.2,.8,.2,1);
+}
+/* Components use semantic class names and native control semantics. */
+.tf-button { min-height:44px; display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 20px; border:1px solid transparent; border-radius:var(--tf-radius-input); font:700 14px/1.5 var(--tf-font); cursor:pointer; text-decoration:none; transition:background var(--tf-duration-fast), border-color var(--tf-duration-fast); }
+.tf-button--primary { background:var(--tf-green-600); color:white; }
+.tf-button--primary:hover { background:var(--tf-green-700); }
+.tf-button--primary:active { background:var(--tf-green-800); }
+.tf-button--secondary { background:white; color:var(--tf-green-700); border-color:var(--tf-input-border); }
+.tf-button--secondary:hover { background:var(--tf-green-50); }
+.tf-button--ghost { background:transparent; color:var(--tf-muted); }
+.tf-button--ghost:hover { background:var(--tf-subtle); }
+.tf-button:disabled { background:#e8ece8; border-color:transparent; color:#64736b; cursor:not-allowed; }
+.tf-button[aria-busy=true] { cursor:wait; }
+.tf-button:focus-visible, .tf-input:focus-visible, .tf-check:focus-visible, .tf-nav:focus-visible { outline:3px solid var(--tf-green-700); outline-offset:3px; }
+.tf-card { background:var(--tf-surface); border:1px solid var(--tf-border); border-radius:var(--tf-radius-card); padding:24px; box-shadow:var(--tf-shadow-card); }
+.tf-input { width:100%; box-sizing:border-box; min-height:48px; padding:12px 14px; border:1px solid var(--tf-input-border); border-radius:var(--tf-radius-input); background:white; color:var(--tf-navy); font:400 16px/1.5 var(--tf-font); }
+.tf-input::placeholder { color:var(--tf-muted); }
+.tf-input[aria-invalid=true] { border-color:var(--tf-danger); }
+.tf-badge { display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:var(--tf-radius-pill); font:700 12px/1.4 var(--tf-font); }
+.tf-badge--confirmed { background:var(--tf-green-50); color:var(--tf-green-700); }
+.tf-badge--expected { background:var(--tf-blue-bg); color:var(--tf-blue-text); }
+.tf-badge--goal { background:var(--tf-yellow-bg); color:var(--tf-yellow-text); }
+.tf-badge--deadline { background:var(--tf-orange-bg); color:var(--tf-orange-text); }
+.tf-badge--error { background:var(--tf-danger-bg); color:var(--tf-danger); }
+.tf-progress { height:8px; background:var(--tf-subtle); border-radius:999px; overflow:hidden; }
+.tf-progress > span { display:block; height:100%; background:var(--tf-green-600); border-radius:inherit; }
+.tf-check { width:20px; height:20px; accent-color:var(--tf-green-600); }
+.tf-nav { display:flex; min-height:48px; align-items:center; gap:12px; padding:0 16px; border-radius:12px; text-decoration:none; color:var(--tf-muted); }
+.tf-nav[aria-current=page] { background:var(--tf-green-50); color:var(--tf-green-700); font-weight:700; }
+@media(prefers-reduced-motion:reduce) { .tf-button { transition:none; } }

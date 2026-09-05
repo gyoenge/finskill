@@ -41,7 +41,7 @@ function AskInner() {
 
   const send = async (text: string) => {
     const msg = text.trim();
-    if (!msg || pending) return;
+    if (!msg || pending || !ready) return;
     setInput("");
 
     const userMessage: ChatMessage = {
@@ -70,7 +70,9 @@ function AskInner() {
           history: (state.chats[THREAD] ?? []).map((m) => ({ role: m.role, content: m.content })),
         }),
       });
-      const data = (await res.json()) as { answer: string; decision: Decision | null };
+      if (!res.ok) throw new Error("대화 요청 실패");
+      const data = (await res.json()) as { answer: string; decision: Decision | null; };
+      if (typeof data.answer !== "string") throw new Error("응답 형식 오류");
       const agentMessage: ChatMessage = {
         id: `m_${Date.now().toString(36)}_a`,
         role: "agent",
@@ -95,14 +97,15 @@ function AskInner() {
   const empty = messages.length === 0;
 
   return (
-    <div className="mx-auto flex h-[calc(100vh-8rem)] max-w-2xl flex-col">
+    <div className="chat-page">
+      <header className="chat-heading"><Pio size={48} /><div><h1>피오와 함께 생각해요</h1><p>{focusEvent ? `${focusEvent.title} 계획에 대한 대화` : "나의 타임라인을 아는 금융 동반자"}</p></div></header>
       {empty ? (
-        <div className="flex flex-1 flex-col items-center justify-center text-center">
-          <Pio size={64} />
-          <h1 className="mt-3 text-[20px] font-extrabold text-fin-navy">피오</h1>
+        <div className="chat-empty flex flex-1 flex-col items-center justify-center text-center">
+          <Pio size={112} mood="guide" />
+          <h1 className="mt-3 text-[20px] font-extrabold text-fin-navy">어떤 내일을 준비하고 있나요?</h1>
           <p className="mt-1 text-[13px] text-ink-500">
             {ready && state.user ? `${new Date().getFullYear() - state.user.birthYear}세 · ` : ""}
-            당신의 Timeline을 알고 있어요. 지금 무엇이 궁금한가요?
+            나의 계획을 바탕으로 함께 생각해볼게요.
           </p>
           {focusEvent && (
             <p className="mt-2 rounded-full bg-fin-green-50 px-3 py-1 text-[12px] font-semibold text-fin-green-700">
@@ -113,6 +116,7 @@ function AskInner() {
             {(focusEvent ? [`${focusEvent.title}까지 뭘 준비해야 해?`, ...SUGGESTED.slice(0, 3)] : SUGGESTED).map((q) => (
               <li key={q}>
                 <button
+                  disabled={pending || !ready}
                   onClick={() => send(q)}
                   className="card-soft card-soft-hover w-full px-4 py-3 text-left text-[13px] font-medium text-ink-700"
                 >
@@ -123,13 +127,13 @@ function AskInner() {
           </ul>
         </div>
       ) : (
-        <div className="flex-1 space-y-4 overflow-y-auto py-2">
+        <div className="chat-log space-y-5" role="log" aria-label="피오와 나눈 대화" aria-live="polite">
           {messages.map((m) => (
             <MessageBubble key={m.id} message={m} />
           ))}
           {pending && (
             <div className="flex items-center gap-2 text-[13px] text-ink-400">
-              <Pio size={28} />
+              <Pio size={40} mood="thinking" />
               <span className="flex gap-1">
                 <Dot /> <Dot /> <Dot />
               </span>
@@ -145,18 +149,19 @@ function AskInner() {
           e.preventDefault();
           send(input);
         }}
-        className="mt-3 flex items-center gap-2 border-t border-line pt-3"
+        className="chat-form flex items-center gap-2"
       >
         <input
+          aria-label="피오에게 보낼 질문"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="피오에게 물어보세요"
-          disabled={pending}
+          disabled={pending || !ready}
           className="flex-1 rounded-xl border border-line bg-surface px-4 py-3 text-[14px] outline-none focus:border-fin-green-500 disabled:opacity-60"
         />
         <button
           type="submit"
-          disabled={pending || !input.trim()}
+          disabled={pending || !ready || !input.trim()}
           className="rounded-xl bg-fin-green-500 px-5 py-3 text-[14px] font-bold text-white transition hover:bg-fin-green-600 disabled:cursor-not-allowed disabled:bg-ink-300"
         >
           보내기
@@ -166,7 +171,7 @@ function AskInner() {
   );
 }
 
-function MessageBubble({ message }: { message: ChatMessage }) {
+function MessageBubble({ message }: { message: ChatMessage; }) {
   if (message.role === "user") {
     return (
       <div className="flex justify-end">
@@ -192,7 +197,7 @@ function MessageBubble({ message }: { message: ChatMessage }) {
 }
 
 /** '- ' 불릿과 문단을 간단히 렌더 */
-function AnswerText({ text }: { text: string }) {
+function AnswerText({ text }: { text: string; }) {
   const lines = text.split("\n").filter((l) => l.trim());
   return (
     <div className="space-y-1.5">
@@ -212,7 +217,7 @@ function AnswerText({ text }: { text: string }) {
 }
 
 /** Decision UI — 추천 + 비교표 + Why (설계 §32) */
-function DecisionCard({ decision }: { decision: Decision }) {
+function DecisionCard({ decision }: { decision: Decision; }) {
   const columns = useMemo(() => {
     const keys = new Set<string>();
     decision.options.forEach((o) => Object.keys(o.columns ?? {}).forEach((k) => keys.add(k)));
@@ -220,9 +225,9 @@ function DecisionCard({ decision }: { decision: Decision }) {
   }, [decision.options]);
 
   return (
-    <div className="card-soft overflow-hidden">
+    <div className="card-soft decision-card overflow-hidden">
       <div className="bg-fin-green-50 px-4 py-3">
-        <p className="text-[11px] font-bold text-fin-green-700">20FIN Recommendation</p>
+        <p className="text-[11px] font-bold text-fin-green-700">피오의 제안</p>
         <p className="mt-0.5 text-[14px] font-extrabold text-fin-navy">{decision.recommendation}</p>
       </div>
 

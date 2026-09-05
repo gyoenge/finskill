@@ -1,107 +1,26 @@
 "use client";
-
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Wordmark } from "@/components/Brand";
-
-/** 20FIN Primary Navigation (docs/design-spec.md §6) */
 const ITEMS = [
-  { href: "/", label: "나의 20대", icon: TimelineIcon },
-  { href: "/opportunities", label: "지금의 기회", icon: SparkIcon },
-  { href: "/ask", label: "AI에게 물어보기", icon: ChatIcon },
+  { href: "/", label: "나의 20대", short: "나의 20대", icon: TimelineIcon },
+  { href: "/opportunities", label: "지금의 기회", short: "지금의 기회", icon: SparkIcon },
+  { href: "/ask", label: "AI에게 물어보기", short: "피오와 대화", icon: ChatIcon },
+  { href: "/me", label: "내 정보", short: "내 정보", icon: UserIcon },
 ];
-
-const SUB = [
-  { href: "/me", label: "내 정보", icon: UserIcon },
-];
-
 export function SideNav() {
-  const pathname = usePathname();
-  const active = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
-
-  return (
-    <nav className="hidden w-[212px] shrink-0 flex-col border-r border-line bg-surface px-3 py-5 md:flex">
-      <Link href="/" className="mb-6 px-2">
-        <Wordmark />
-      </Link>
-      <ul className="flex flex-col gap-0.5">
-        {ITEMS.map(({ href, label, icon: Icon }) => {
-          const on = active(href);
-          return (
-            <li key={href}>
-              <Link
-                href={href}
-                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13.5px] font-semibold transition ${
-                  on
-                    ? "bg-fin-green-50 text-fin-green-700"
-                    : "text-ink-500 hover:bg-canvas hover:text-ink-900"
-                }`}
-              >
-                <Icon active={on} />
-                {label}
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-      <div className="my-3 border-t border-line" />
-      <ul className="flex flex-col gap-0.5">
-        {SUB.map(({ href, label, icon: Icon }) => {
-          const on = active(href);
-          return (
-            <li key={href}>
-              <Link
-                href={href}
-                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium transition ${
-                  on ? "bg-fin-green-50 text-fin-green-700" : "text-ink-400 hover:bg-canvas hover:text-ink-700"
-                }`}
-              >
-                <Icon active={on} />
-                {label}
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-      <div className="mt-auto rounded-xl bg-fin-cream px-3 py-3">
-        <p className="text-[11px] leading-relaxed text-ink-500">
-          20대의 다음을 준비하는 금융.
-          <br />
-          <span className="font-semibold text-fin-green-700">My 20s, Better Finance.</span>
-        </p>
-      </div>
-    </nav>
-  );
+  const path = usePathname();
+  return <aside className="sidebar"><Link href="/" className="sidebar-brand"><Wordmark size={40} /><span>My 20s, Better Finance.</span></Link>
+    <nav aria-label="주 메뉴"><ul>{ITEMS.map(({ href, label, icon: Icon }, i) => <li key={href} className={i === 3 ? "nav-secondary" : ""}><Link href={href} aria-current={path === href ? "page" : undefined} className="nav-link"><Icon active={path === href} />{label}</Link></li>)}</ul></nav>
+    <div className="sidebar-footer"><span className="little-sprout">20s, and beyond.</span><p>지금의 선택이<br />더 나은 20대를 만들어요.</p><small>© 20FIN<br />Finance for what’s next.</small></div></aside>;
 }
-
 export function BottomNav() {
-  const pathname = usePathname();
-  const active = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
-  const items = [...ITEMS, ...SUB];
-  return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-line bg-surface/95 backdrop-blur md:hidden">
-      {items.map(({ href, label, icon: Icon }) => {
-        const on = active(href);
-        return (
-          <Link
-            key={href}
-            href={href}
-            className={`flex flex-col items-center gap-1 py-2.5 text-[10px] font-semibold ${
-              on ? "text-fin-green-700" : "text-ink-400"
-            }`}
-          >
-            <Icon active={on} />
-            {label}
-          </Link>
-        );
-      })}
-    </nav>
-  );
+  const path = usePathname();
+  return <nav className="bottom-nav" aria-label="모바일 메뉴">{ITEMS.map(({ href, short, icon: Icon }) => <Link key={href} href={href} aria-current={path === href ? "page" : undefined}><Icon active={path === href} /><span>{short}</span></Link>)}</nav>;
 }
-
 /* ---------------- 아이콘 ---------------- */
 
-type IconProps = { active?: boolean };
+type IconProps = { active?: boolean; };
 const stroke = (active?: boolean) => (active ? "var(--color-fin-green-600)" : "currentColor");
 
 function base(active?: boolean) {

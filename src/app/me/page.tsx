@@ -1,42 +1,6 @@
 "use client";
-
+import Link from "next/link";
+import { Pio } from "@/components/Brand";
 import { useTimeline, TimelineLoading } from "@/components/timeline/TimelineStore";
 import { ageOf, statusLabel } from "@/lib/domain/selectors";
-
-/** 내 정보 (설계 §6). Phase 2 에서 프로필 편집·Progressive Profiling 연결 */
-export default function MePage() {
-  const { state, ready, reset } = useTimeline();
-  if (!ready) return <TimelineLoading />;
-  const u = state.user;
-
-  return (
-    <div className="max-w-lg space-y-5">
-      <h1 className="text-[22px] font-extrabold tracking-tight text-fin-navy">내 정보</h1>
-      <div className="card-soft space-y-2 p-5 text-[13px]">
-        <Row label="나이" value={u ? `${ageOf(u.birthYear)}세` : "-"} />
-        <Row label="현재 상태" value={u ? statusLabel(u.currentStatus) : "-"} />
-        <Row label="거주" value={u?.livingType ?? "-"} />
-        <Row label="지역" value={u?.region ?? "-"} />
-        <Row label="Life Event" value={`${state.lifeEvents.length}개`} />
-        <Row label="Fin Event" value={`${state.finEvents.length}개`} />
-      </div>
-      <button
-        onClick={() => {
-          if (confirm("데모 상태로 초기화할까요?")) reset();
-        }}
-        className="text-[12px] font-semibold text-ink-400 hover:text-fin-orange"
-      >
-        데모 상태로 초기화
-      </button>
-    </div>
-  );
-}
-
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between border-b border-line py-1.5 last:border-0">
-      <span className="text-ink-500">{label}</span>
-      <span className="font-semibold text-ink-900">{value}</span>
-    </div>
-  );
-}
+export default function MePage() { const { state, ready, reset } = useTimeline(); if (!ready) return <TimelineLoading />; const u = state.user; const living: Record<string, string> = { family: "본가", dorm: "기숙사", alone: "자취", other: "기타" }; return <div><header className="page-header"><p className="eyebrow">MY STORY</p><h1>내 정보</h1><p>지금의 나를 알고, 다음을 준비해요.</p></header><section className="card-soft profile-card"><div className="profile-heading"><Pio mood="support" size={88} /><div><span className={`status-badge ${state.isDemo ? "expected" : "confirmed"}`}>{state.isDemo ? "예시 프로필" : "나의 프로필"}</span><h2 className="mt-2">{u ? `${ageOf(u.birthYear)}세 · ${statusLabel(u.currentStatus)}` : "나의 이야기를 들려주세요"}</h2></div></div><dl>{[["현재 거주", living[u?.livingType ?? ""] ?? "미입력"], ["거주 지역", u?.region ?? "미입력"], ["나의 이벤트", `${state.lifeEvents.length}개`], ["금융 체크포인트", `${state.finEvents.length}개`]].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl><p className="mt-5 text-sm text-ink-500">내 정보와 대화는 현재 사용 중인 브라우저에 저장돼요.</p><div className="profile-actions"><Link className="button button-primary" href={state.isDemo ? "/onboarding" : "/onboarding?mode=add"}>{state.isDemo ? "내 20대 그리기" : "새로운 이벤트 추가"}</Link><button onClick={() => { if (confirm("입력한 계획과 대화를 지우고 예시 상태로 돌아갈까요?")) reset() ;}}>예시 상태로 초기화</button></div></section></div> ;}

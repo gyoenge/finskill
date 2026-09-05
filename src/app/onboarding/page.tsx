@@ -1,11 +1,13 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import Image from "next/image";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useMemo, useState } from "react";
 import { Icon } from "@/components/Icon";
-import { Pio, PioSays } from "@/components/Brand";
+import { Pio, PioSays, AssetIcon, eventAsset } from "@/components/Brand";
 import { useTimeline } from "@/components/timeline/TimelineStore";
 import {
+  addLifeEvent,
   birthYearFromAge,
   initFromOnboarding,
   type LifeEventDraft,
@@ -25,7 +27,7 @@ import {
  * Step 1 현재 상태 → Step 2 내 20대 그리기 → Step 3 Aha Moment(Fin Event 생성).
  */
 
-const STATUS_OPTIONS: { value: UserStatus; label: string }[] = [
+const STATUS_OPTIONS: { value: UserStatus; label: string; }[] = [
   { value: "student", label: "대학생" },
   { value: "job_seeker", label: "취업 준비" },
   { value: "employee", label: "직장인" },
@@ -33,14 +35,14 @@ const STATUS_OPTIONS: { value: UserStatus; label: string }[] = [
   { value: "other", label: "기타" },
 ];
 
-const LIVING_OPTIONS: { value: LivingType; label: string }[] = [
+const LIVING_OPTIONS: { value: LivingType; label: string; }[] = [
   { value: "family", label: "본가" },
   { value: "dorm", label: "기숙사" },
   { value: "alone", label: "자취" },
   { value: "other", label: "기타" },
 ];
 
-const CERTAINTY_OPTIONS: { value: Certainty; label: string; mark: string }[] = [
+const CERTAINTY_OPTIONS: { value: Certainty; label: string; mark: string; }[] = [
   { value: "confirmed", label: "확정", mark: "✓" },
   { value: "expected", label: "예상", mark: "◇" },
   { value: "goal", label: "목표", mark: "☆" },
@@ -48,12 +50,17 @@ const CERTAINTY_OPTIONS: { value: Certainty; label: string; mark: string }[] = [
 
 const CURRENT_YEAR = new Date().getFullYear();
 
-type Draft = LifeEventDraft & { key: string };
+type Draft = LifeEventDraft & { key: string; };
 
 export default function OnboardingPage() {
+  return <Suspense fallback={<p>불러오는 중…</p>}><OnboardingInner /></Suspense>;
+}
+function OnboardingInner() {
   const router = useRouter();
-  const { update } = useTimeline();
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const { state, update, ready } = useTimeline();
+  const params = useSearchParams();
+  const adding = params.get("mode") === "add";
+  const [step, setStep] = useState<1 | 2 | 3>(adding ? 2 : 1);
 
   // Step 1
   const [age, setAge] = useState(25);
@@ -99,12 +106,14 @@ export default function OnboardingPage() {
       date: d.date,
       certainty: d.certainty,
     }));
-    update(() => initFromOnboarding(user, cleaned));
+    if (adding) update((existing) => cleaned.reduce((next, draft) => addLifeEvent(next, draft), existing));
+    else update(() => initFromOnboarding(user, cleaned));
     router.push("/");
   };
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="onboarding-shell space-y-6">
+      <div className="onboarding-intro"><Image src="/brand/20fin-v1/landscape-timeline-mobile.png" fill sizes="(max-width: 767px) 100vw, 800px" alt="" className="onboarding-landscape" /><div><strong>{adding ? "나의 이야기에 다음 계획을 더해요." : "나의 20대, 함께 그려볼까요?"}</strong><p>{adding ? "지금까지의 계획은 그대로 두고 새로운 이벤트를 추가해요." : "정확한 날짜를 몰라도 괜찮아요. 하고 싶은 일부터 시작해요."}</p></div><Pio size={88} mood={step === 3 ? "celebrate" : "guide"} /></div>
       <StepDots step={step} />
 
       {step === 1 && (
@@ -117,6 +126,7 @@ export default function OnboardingPage() {
             <Field label="현재 나이">
               <div className="flex items-center gap-3">
                 <input
+                  aria-label="현재 나이"
                   type="range"
                   min={18}
                   max={35}
@@ -145,6 +155,7 @@ export default function OnboardingPage() {
             </Field>
             <Field label="거주 지역">
               <input
+                aria-label="거주 지역"
                 value={region}
                 onChange={(e) => setRegion(e.target.value)}
                 placeholder="예: 서울"
@@ -175,7 +186,7 @@ export default function OnboardingPage() {
           {sortedDrafts.length > 0 ? (
             <div className="card-soft p-4">
               <p className="mb-2 text-[12.5px] font-bold text-ink-700">
-                추가한 Event {sortedDrafts.length}개
+                추가한 이벤트 {sortedDrafts.length}개
               </p>
               <ul className="space-y-1.5">
                 {sortedDrafts.map((d) => (
@@ -209,7 +220,7 @@ export default function OnboardingPage() {
 
           <div className="flex gap-2">
             <button
-              onClick={() => setStep(1)}
+              onClick={() => adding ? router.push("/") : setStep(1)}
               className="rounded-xl border border-line px-4 py-3 text-[13px] font-semibold text-ink-500 hover:bg-canvas"
             >
               이전
@@ -219,7 +230,7 @@ export default function OnboardingPage() {
               disabled={sortedDrafts.length === 0}
               className="flex-1 rounded-xl bg-fin-green-500 py-3 text-[14px] font-bold text-white transition hover:bg-fin-green-600 disabled:cursor-not-allowed disabled:bg-ink-300"
             >
-              {sortedDrafts.length === 0 ? "Event를 하나 이상 추가해주세요" : "다 그렸어요 →"}
+              {sortedDrafts.length === 0 ? "이벤트를 하나 이상 추가해주세요" : "다 그렸어요 →"}
             </button>
           </div>
         </div>
@@ -228,12 +239,12 @@ export default function OnboardingPage() {
       {step === 3 && (
         <div className="space-y-5">
           <div className="flex flex-col items-center text-center">
-            <Pio size={64} />
+            <Pio size={80} mood="celebrate" />
             <h1 className="mt-3 text-[22px] font-extrabold tracking-tight text-fin-navy">
               앞으로의 20FIN을 준비했어요.
             </h1>
             <p className="mt-1.5 text-[13px] text-ink-500">
-              입력한 {sortedDrafts.length}개의 Life Event를 기반으로 앞으로 챙겨야 할 금융 체크포인트{" "}
+              입력한 {sortedDrafts.length}개의 이벤트를 기반으로 앞으로 챙겨야 할 금융 체크포인트{" "}
               <b className="text-fin-green-700">{previewFinCount}개</b>를 만들었습니다.
             </p>
           </div>
@@ -259,10 +270,11 @@ export default function OnboardingPage() {
               이전
             </button>
             <button
+              disabled={!ready || (adding && !state.user)}
               onClick={finish}
               className="flex-1 rounded-xl bg-fin-green-500 py-3 text-[14px] font-bold text-white transition hover:bg-fin-green-600"
             >
-              나의 20대 Timeline 보기 →
+              나의 20대 보기 →
             </button>
           </div>
         </div>
@@ -273,7 +285,7 @@ export default function OnboardingPage() {
 
 /* ------------------------- Event 추가 폼 ------------------------- */
 
-function EventAdder({ onAdd }: { onAdd: (d: LifeEventDraft) => void }) {
+function EventAdder({ onAdd }: { onAdd: (d: LifeEventDraft) => void; }) {
   const [type, setType] = useState<LifeEventType>("education");
   const [subtype, setSubtype] = useState<string>(LIFE_EVENT_CATALOG.education.options[0].subtype);
   const [year, setYear] = useState(CURRENT_YEAR);
@@ -296,19 +308,19 @@ function EventAdder({ onAdd }: { onAdd: (d: LifeEventDraft) => void }) {
 
   return (
     <div className="card-soft space-y-4 p-4">
-      <div className="flex flex-wrap gap-1.5">
+      <div className="category-selector flex flex-wrap gap-1.5">
         {(Object.keys(LIFE_EVENT_CATALOG) as LifeEventType[]).map((t) => (
           <button
             key={t}
+            aria-pressed={type === t}
             onClick={() => pickType(t)}
-            className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-[12.5px] font-semibold transition ${
-              type === t
+            className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-[12.5px] font-semibold transition ${type === t
                 ? "border-fin-green-500 bg-fin-green-50 text-fin-green-700"
                 : "border-line bg-surface text-ink-500 hover:border-fin-green-200"
-            }`}
+              }`}
           >
-            <Icon name={LIFE_EVENT_CATALOG[t].icon as never} size={14} />
-            {LIFE_EVENT_CATALOG[t].label}
+            <AssetIcon name={eventAsset({ type: t, subtype: "" })} size={42} />
+            {{ education: "학업", career: "커리어", living: "주거", finance: "금융", goal: "목표" }[t]}
           </button>
         ))}
       </div>
@@ -355,12 +367,12 @@ function EventAdder({ onAdd }: { onAdd: (d: LifeEventDraft) => void }) {
             {CERTAINTY_OPTIONS.map((c) => (
               <button
                 key={c.value}
+                aria-pressed={certainty === c.value}
                 onClick={() => setCertainty(c.value)}
-                className={`rounded-lg border px-2.5 py-2 text-[12px] font-semibold transition ${
-                  certainty === c.value
+                className={`rounded-lg border px-2.5 py-2 text-[12px] font-semibold transition ${certainty === c.value
                     ? "border-fin-green-500 bg-fin-green-50 text-fin-green-700"
                     : "border-line bg-surface text-ink-400 hover:border-fin-green-200"
-                }`}
+                  }`}
               >
                 {c.mark} {c.label}
               </button>
@@ -381,22 +393,21 @@ function EventAdder({ onAdd }: { onAdd: (d: LifeEventDraft) => void }) {
 
 /* ------------------------- 공통 UI ------------------------- */
 
-function StepDots({ step }: { step: number }) {
+function StepDots({ step }: { step: number; }) {
   return (
     <div className="flex items-center justify-center gap-2">
       {[1, 2, 3].map((s) => (
         <span
           key={s}
-          className={`h-1.5 rounded-full transition-all ${
-            s === step ? "w-6 bg-fin-green-500" : s < step ? "w-1.5 bg-fin-green-300" : "w-1.5 bg-line"
-          }`}
+          className={`h-1.5 rounded-full transition-all ${s === step ? "w-6 bg-fin-green-500" : s < step ? "w-1.5 bg-fin-green-300" : "w-1.5 bg-line"
+            }`}
         />
       ))}
     </div>
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, children }: { label: string; children: React.ReactNode; }) {
   return (
     <div>
       <p className="mb-2 text-[12.5px] font-bold text-fin-navy">{label}</p>
@@ -420,12 +431,12 @@ function Choices({
         <button
           key={o}
           type="button"
+          aria-pressed={value === o}
           onClick={() => onChange(o)}
-          className={`rounded-xl border px-3 py-1.5 text-[12.5px] font-medium transition ${
-            value === o
+          className={`rounded-xl border px-3 py-1.5 text-[12.5px] font-medium transition ${value === o
               ? "border-fin-green-500 bg-fin-green-50 text-fin-green-700"
               : "border-line bg-surface text-ink-500 hover:border-fin-green-200"
-          }`}
+            }`}
         >
           {o}
         </button>
