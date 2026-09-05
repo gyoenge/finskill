@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { AssetIcon, PioSays } from "@/components/Brand";
 import { TimelineLoading } from "@/components/timeline/TimelineStore";
+import { PersonalContextBar } from "@/components/PersonalContextBar";
 import { useOpportunities } from "@/lib/domain/useOpportunities";
 import type { RankedOpportunity } from "@/lib/domain/opportunity-rank";
 
@@ -38,6 +39,7 @@ export default function OpportunitiesPage() {
 
   return <div className="space-y-6">
     <header className="page-header opportunity-header"><div><p className="eyebrow">OPPORTUNITIES FOR YOU</p><h1>지금의 기회</h1><p>나의 계획에 가까운 지원정보를 주제별로 모았어요.</p></div><AssetIcon name="utility-opportunity" size={100} /></header>
+    <PersonalContextBar />
     {bundle && !loading && <div className="opportunity-summary"><span>금융정보 <strong>{bundle.total}개</strong> 확인</span><span aria-hidden="true">→</span><span>나이 · 지역 · 계획 · 마감 기준</span><strong>관련 정보 {ranked.length}개</strong></div>}
     {loading && <TimelineLoading />}
     {error && <PioSays>정보를 불러오지 못했어요. 잠시 후 다시 방문해 주세요.</PioSays>}

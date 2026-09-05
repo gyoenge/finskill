@@ -4,6 +4,7 @@ import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Pio } from "@/components/Brand";
 import { useTimeline } from "@/components/timeline/TimelineStore";
+import { PersonalContextBar } from "@/components/PersonalContextBar";
 import type { ChatMessage, Decision } from "@/lib/domain/state";
 
 /** 화면 6 — AI Agent 피오 (설계 §30~§32). Timeline Context 를 아는 대화형 Agent. */
@@ -99,6 +100,7 @@ function AskInner() {
   return (
     <div className="chat-page">
       <header className="chat-heading"><Pio size={48} /><div><h1>피오와 함께 생각해요</h1><p>{focusEvent ? `${focusEvent.title} 계획에 대한 대화` : "나의 타임라인을 아는 금융 동반자"}</p></div></header>
+      <PersonalContextBar compact />
       {empty ? (
         <div className="chat-empty flex flex-1 flex-col items-center justify-center text-center">
           <Pio size={112} mood="guide" />

@@ -92,6 +92,7 @@ ${contextBlock}
 
 절대 규칙:
 1. 위 Timeline·체크포인트·프로필의 사실을 근거로, 사용자의 다음 Life Event 준비 관점에서 답한다.
+1-1. 질문과 관계있는 기본정보 또는 Timeline 사실을 답변에 최소 한 번 구체적으로 연결한다.
 2. 특정 금융상품 가입을 권유하거나 투자자문·주식 종목 추천을 하지 않는다. 선택지와 판단 기준만 제시한다.
 3. 위 정보에 없는 수치(금액·금리·마감일)를 지어내지 않는다. 판단에 필요한 숫자가 없으면 사용자에게 되묻는다.
 4. 신청·계약·송금은 20FIN이 대신 할 수 없다는 점을 필요할 때 분명히 말한다.
@@ -113,6 +114,9 @@ export async function POST(req: Request) {
   const body = (await req.json()) as AskBody;
   if (!body?.message?.trim()) {
     return NextResponse.json({ error: "message required" }, { status: 400 });
+  }
+  if (!body.context?.user || !Array.isArray(body.context.lifeEvents) || !Array.isArray(body.context.finEvents)) {
+    return NextResponse.json({ error: "onboarding context required" }, { status: 400 });
   }
 
   if (!llmAvailable()) {

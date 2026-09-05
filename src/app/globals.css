@@ -1425,6 +1425,33 @@ img {
   gap: 24px;
 }
 
+.personal-context {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid #ccebd8;
+  border-radius: 16px;
+  background: #f3fbf5;
+}
+.personal-context-icon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #20b26b;
+  color: white;
+  font-size: 13px;
+  font-weight: 800;
+}
+.personal-context div { min-width: 0; flex: 1; }
+.personal-context strong { display: block; color: #006c43; font-size: 12px; }
+.personal-context p { margin-top: 1px; color: #526674; font-size: 13px; }
+.personal-context a { color: #006c43; font-size: 12px; font-weight: 750; white-space: nowrap; }
+.personal-context.compact { margin-top: 14px; padding-block: 10px; }
+
 .onboarding-route {
   min-height: 100dvh;
   padding: 40px 24px 64px;
@@ -2222,4 +2249,7 @@ img {
   .opportunity-groups button {
     padding: 11px;
   }
+  .personal-context { align-items: flex-start; }
+  .personal-context p { font-size: 12px; }
+  .personal-context a { align-self: center; }
 }
