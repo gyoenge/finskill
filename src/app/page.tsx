@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { useTimeline, TimelineLoading } from "@/components/timeline/TimelineStore";
 import { TimelineCanvas } from "@/components/timeline/TimelineCanvas";
 import { RightNowPanel } from "@/components/timeline/RightNowPanel";
+import { EventDrawer } from "@/components/timeline/EventDrawer";
 import { PioSays } from "@/components/Brand";
 import { ageOf, sortedLifeEvents, statusLabel, upcomingLifeEvents } from "@/lib/domain/selectors";
 import { formatEventDate, type LifeEvent } from "@/lib/domain/timeline";
@@ -91,25 +92,18 @@ export default function HomePage() {
           )}
         </section>
 
-        <RightNowPanel state={state} onSelectFinEvent={() => { /* Phase 2: Event Drawer */ }} />
+        <RightNowPanel
+          state={state}
+          onSelectFinEvent={(f) => {
+            // 해당 체크포인트가 속한 Life Event 의 Drawer 를 연다.
+            const parent = events.find((e) => e.id === f.lifeEventId);
+            if (parent) setSelected(parent);
+          }}
+        />
       </div>
 
-      {/* 선택한 Event 요약 (Phase 2 에서 Right Drawer 로 대체) */}
-      {selected && (
-        <div className="card-soft p-4">
-          <div className="flex items-center justify-between">
-            <p className="text-[14px] font-extrabold text-fin-navy">{selected.title}</p>
-            <button onClick={() => setSelected(null)} className="text-[12px] text-ink-400 hover:text-ink-700">
-              닫기
-            </button>
-          </div>
-          <p className="mt-1 text-[12px] text-ink-500">
-            이 Event를 위한 체크포인트{" "}
-            {state.finEvents.filter((f) => f.lifeEventId === selected.id).length}개가 준비돼 있어요.
-            <span className="text-ink-400"> (상세 Drawer는 다음 단계에서 제공됩니다.)</span>
-          </p>
-        </div>
-      )}
+      {/* Event Detail — Right Drawer (설계 §22) */}
+      {selected && <EventDrawer event={selected} onClose={() => setSelected(null)} />}
     </div>
   );
 }
