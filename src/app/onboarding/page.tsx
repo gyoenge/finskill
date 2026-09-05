@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { Pio, PioSays, AssetIcon, eventAsset } from "@/components/Brand";
 import { useTimeline } from "@/components/timeline/TimelineStore";
@@ -59,8 +59,16 @@ function OnboardingInner() {
   const router = useRouter();
   const { state, update, ready } = useTimeline();
   const params = useSearchParams();
-  const adding = params.get("mode") === "add";
-  const [step, setStep] = useState<1 | 2 | 3>(adding ? 2 : 1);
+  const requestedAdding = params.get("mode") === "add";
+  const adding = requestedAdding && ready && Boolean(state.user) && !state.isDemo;
+  const [step, setStep] = useState<1 | 2 | 3>(requestedAdding ? 2 : 1);
+
+  useEffect(() => {
+    if (ready && requestedAdding && !adding) {
+      setStep(1);
+      router.replace("/onboarding");
+    }
+  }, [adding, ready, requestedAdding, router]);
 
   // Step 1
   const [age, setAge] = useState(25);

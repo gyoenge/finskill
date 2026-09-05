@@ -1310,6 +1310,16 @@ img {
   gap: 24px;
 }
 
+.onboarding-route {
+  min-height: 100dvh;
+  padding: 40px 24px 64px;
+  background: var(--color-canvas);
+}
+
+.onboarding-route > * {
+  margin-inline: auto;
+}
+
 .opportunity-header img {
   flex-shrink: 0;
 }
@@ -1329,6 +1339,40 @@ img {
 .opportunity-summary strong {
   color: #006c43;
 }
+
+.opportunity-groups {
+  display: grid;
+  grid-template-columns: repeat(5,minmax(0,1fr));
+  gap: 10px;
+}
+
+.opportunity-groups button {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--color-line);
+  border-radius: 18px;
+  background: white;
+  color: #526674;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  transition: border-color .2s,background .2s,transform .2s;
+}
+
+.opportunity-groups button:hover { transform: translateY(-2px); }
+.opportunity-groups button[aria-pressed="true"] { border-color: #20b26b; background: #effaf3; color: #006c43; box-shadow: 0 6px 18px #00865312; }
+.opportunity-groups button img { flex: 0 0 auto; }
+.opportunity-groups button span { min-width: 0; display: flex; flex-direction: column; }
+.opportunity-groups button strong { font-size: 14px; white-space: nowrap; }
+.opportunity-groups button small { font-size: 11px; color: #74847c; }
+
+.opportunity-section { display: flex; flex-direction: column; gap: 18px; }
+.opportunity-section-heading { align-items: end; }
+.opportunity-section-heading h2 { font-size: 22px; }
+.opportunity-section-heading p { margin-top: 4px; color: #637580; font-size: 14px; }
+.opportunity-section-heading > span { color: #006c43; font-size: 13px; font-weight: 700; }
+.opportunity-more { align-self: center; min-width: 180px; background: white; border: 1px solid var(--color-line); }
 
 .opportunity-card {
   padding: 24px;
@@ -2030,8 +2074,17 @@ img {
   .chat-page .chat-empty>h2 {
     font-size: 24px;
   }
+  .onboarding-route {
+    padding: 20px 16px 40px;
+  }
   .onboarding-intro img.onboarding-landscape {
     width: 100% !important;
     height: 100% !important;
+  }
+  .opportunity-groups {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+  }
+  .opportunity-groups button {
+    padding: 11px;
   }
 }

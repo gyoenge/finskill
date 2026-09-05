@@ -66,6 +66,32 @@ const TEMPLATES: Record<string, FinEventTemplate[]> = {
   ],
 };
 
+/** 카탈로그의 모든 이벤트가 최소한의 다음 행동을 갖도록 하는 안전망. */
+const TYPE_DEFAULTS: Record<LifeEvent["type"], FinEventTemplate[]> = {
+  education: [
+    { offsetMonths: -3, title: "학업 비용과 지원 확인", type: "opportunity", priority: "high", note: "등록금·생활비와 받을 수 있는 장학·지원 제도를 함께 확인해요." },
+    { offsetMonths: -1, title: "학업 기간 생활비 계획", type: "planning", priority: "medium" },
+  ],
+  career: [
+    { offsetMonths: -2, title: "소득 공백 대비하기", type: "planning", priority: "medium", note: "변화 전후의 고정비와 필요한 생활비를 먼저 계산해요." },
+    { offsetMonths: 0, title: "계약과 급여 조건 확인", type: "risk", priority: "high" },
+    { offsetMonths: 1, title: "새 소득에 맞춰 예산 조정", type: "planning", priority: "medium" },
+  ],
+  living: [
+    { offsetMonths: -4, title: "주거 비용 범위 정하기", type: "planning", priority: "medium" },
+    { offsetMonths: -2, title: "받을 수 있는 주거지원 확인", type: "opportunity", priority: "high" },
+    { offsetMonths: -1, title: "계약 전 보증금 보호 확인", type: "risk", priority: "high" },
+  ],
+  finance: [
+    { offsetMonths: 0, title: "조건과 비용 확인", type: "check", priority: "high" },
+    { offsetMonths: 1, title: "월 예산에 반영하기", type: "planning", priority: "medium" },
+  ],
+  goal: [
+    { offsetMonths: -6, title: "목표 금액과 기간 정하기", type: "planning", priority: "medium" },
+    { offsetMonths: -5, title: "월별 준비 금액 계산", type: "planning", priority: "high" },
+  ],
+};
+
 let seq = 0;
 function nextId(): string {
   seq += 1;
@@ -83,15 +109,14 @@ function addMonths(base: Date, months: number): string {
 
 /**
  * 하나의 Life Event 로부터 Fin Event 목록을 생성한다.
- * 날짜가 없는 Life Event 는 시점 계산이 불가능하므로 건너뛴다.
+ * 날짜가 없으면 체크포인트는 만들되 dueDate를 비워 사용자가 계획을 잃지 않게 한다.
  */
 export function generateFinEvents(lifeEvent: LifeEvent, now = new Date()): FinEvent[] {
-  const templates = TEMPLATES[lifeEvent.subtype];
+  const templates = TEMPLATES[lifeEvent.subtype] ?? TYPE_DEFAULTS[lifeEvent.type];
   const base = parseEventDate(lifeEvent.date);
-  if (!templates || !base) return [];
 
   return templates.map((t) => {
-    const dueDate = addMonths(base, t.offsetMonths);
+    const dueDate = base ? addMonths(base, t.offsetMonths) : undefined;
     // 이미 지난 체크포인트는 완료로 두지 않고, 아직 유효한 것만 pending 으로 노출한다.
     return {
       id: nextId(),
